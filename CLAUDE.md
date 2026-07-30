@@ -60,6 +60,11 @@ just dev samples          # 開發模式（可透傳 --port 等參數）
 just new report/20260801  # 新建簡報骨架
 ```
 
+## Skills
+
+- `draft-to-deck`（`.claude/skills/`）：把條列式草稿編排成 Slidev 簡報。
+  給定草稿路徑時使用——會先讀懂草稿、提問釐清，再重新編排成 `slides.md`。
+
 ## 注意事項
 
 - Slidev **不接受資料夾**當入口。`slidev slides/samples` 會被當成檔案而失敗，
