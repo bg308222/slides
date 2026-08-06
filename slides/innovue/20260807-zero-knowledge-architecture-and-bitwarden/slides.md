@@ -780,23 +780,20 @@ class: text-center
 layout: center
 ---
 
-# 附錄：CLI 上的 BW_SESSION
+# 參考資料
 
 <div class="max-w-3xl">
 
-<div class="text-sm opacity-70 mb-4">
-剛才那把 session key，在 CLI 上是看得見摸得到的 —— <code>bw unlock</code> 會直接把它印出來。
-</div>
-
 <div class="p-4 rounded border-l-4 border-teal-400 bg-teal-400/5 mb-4">
 
-**為什麼 CLI 一定要把它交給你？**
+**Bitwarden Security Whitepaper**
 
 <div class="text-sm opacity-70 mt-2">
 
-因為 CLI 每跑一次指令都是新的 process ——
-記分板上那欄「本機 memory」，在 CLI 上<b>根本不存在</b>。
-鎖著的 Symmetric Key 只能放硬碟，鑰匙只好交給使用者自己拿著。
+<a href="https://bitwarden.com/help/bitwarden-security-white-paper/" target="_blank">bitwarden.com/help/bitwarden-security-white-paper</a>
+
+Master Key 分岔成兩條路、Symmetric Key 被 Stretched Master Key 包成
+Protected Symmetric Key —— 整條鏈的正式描述都在這。
 
 </div>
 
@@ -804,22 +801,17 @@ layout: center
 
 <div class="p-4 rounded border-l-4 border-amber-400 bg-amber-400/5">
 
-**再 unlock 一次，前一把為什麼就不能用了？**
+**Password Manager CLI**
 
 <div class="text-sm opacity-70 mt-2">
 
-因為硬碟上那一格只有一個位置，新的 unlock 會直接覆寫掉它。
-舊鑰匙沒有被撤銷、server 也完全不知情 —— 它只是**再也沒有東西可以開了**。
+<a href="https://bitwarden.com/help/cli/" target="_blank">bitwarden.com/help/cli</a>
+
+官方原話：session key *"acts as a **decryption key**"* ——
+直接說明它是鑰匙而不是通行證，也說明 `login` 和 `unlock` 是分開的兩件事。
 
 </div>
 
-<div class="text-sm mt-3 opacity-85">不是「作廢」，是「換鎖」。</div>
-
-</div>
-
-<div class="mt-4 text-xs opacity-45">
-<code>bw login</code> 拿的是跟 server 講話的憑證，<code>bw unlock</code> 拿的是解本機資料的鑰匙 ——
-第二段長出來的那兩條線，在日常指令裡又出現一次。
 </div>
 
 </div>
