@@ -4,12 +4,16 @@ withDefaults(defineProps<{
   rows: string[][]
   title?: string
   dim?: boolean
-}>(), { title: 'users 資料表', dim: false })
+  /** 視覺規則 A：整張表是加密過的，標題旁掛鎖 */
+  locked?: boolean
+}>(), { title: 'users 資料表', dim: false, locked: false })
 </script>
 
 <template>
   <div class="w-full transition-opacity duration-500" :class="dim ? 'opacity-20' : 'opacity-100'">
-    <div class="opacity-50 mb-1" style="font-size: 10px">{{ title }}</div>
+    <div class="opacity-50 mb-1 flex items-center gap-1" style="font-size: 10px">
+      {{ title }}<Lock v-if="locked" :size="11" />
+    </div>
     <table class="w-full font-mono border-collapse" style="font-size: 11px">
       <thead>
         <tr>

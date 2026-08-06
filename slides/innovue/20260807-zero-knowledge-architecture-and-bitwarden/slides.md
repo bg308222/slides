@@ -61,7 +61,7 @@ layout: center
 **完整走一遍**
 
 <div class="text-sm opacity-65 mt-2 leading-relaxed">
-register / login / lock / unlock / logout，三欄記到底。
+register / login / unlock / lock / logout，一步一步走完。
 </div>
 </div>
 
@@ -271,7 +271,15 @@ clicks: 3
 
 <Stage>
   <template #client>
-    <Token value="hunter2" variant="plain" note="前五步都只是為了進得來" />
+    <div class="flex items-center gap-3">
+      <Token label="使用者輸入" value="hunter2" variant="plain" />
+      <span class="opacity-40 text-lg">→</span>
+      <Token label="本機 hash" value="9f2a…" variant="hash" />
+    </div>
+    <div class="opacity-45 mt-1" style="font-size: 11px">前五步都只是為了進得來</div>
+  </template>
+  <template #wire>
+    <Token value="9f2a…" variant="hash" />
   </template>
   <template #server>
     <div class="w-full flex flex-col items-center gap-2">
@@ -321,22 +329,33 @@ clicks: 3
 
 # 先試最直覺的做法
 
-資料要可逆，就一定要有一把開得回來的鑰匙。那就拿第一段已經有的東西來用 ——
+資料要可逆，就一定要有一把開得回來的鑰匙。手上唯一現成的東西就是它 ——
 
 <Stage>
   <template #client>
-    <Token label="拿它當加密鑰匙" value="9f2a…" variant="hash" :dim="$clicks < 1" />
+    <div class="flex items-center gap-3">
+      <Token label="使用者輸入" value="hunter2" variant="plain" />
+      <span class="opacity-40 text-lg">→</span>
+      <div class="flex flex-col items-center gap-1">
+        <div class="leading-none transition-opacity duration-500"
+             :style="{ fontSize: '11px', opacity: $clicks >= 1 ? 0.85 : 0 }">拿它當加密鑰匙</div>
+        <Token value="9f2a…" variant="hash" />
+      </div>
+    </div>
   </template>
   <template #wire>
-    <Token value="9f2a…" variant="hash" :dim="$clicks < 1" />
+    <Token value="9f2a…" variant="hash" />
   </template>
   <template #server>
-    <div class="flex flex-col items-center gap-2">
+    <div class="w-full flex flex-col items-center gap-1.5">
       <Token label="server 手上也有" value="9f2a…" variant="hash" :dim="$clicks < 2" />
-      <div class="text-red-400 text-2xl transition-opacity duration-500"
+      <div class="text-red-400 text-xl leading-none transition-opacity duration-500"
            :style="{ opacity: $clicks >= 2 ? 1 : 0 }">↓</div>
-      <div class="text-red-300 text-sm transition-opacity duration-500"
-           :style="{ opacity: $clicks >= 2 ? 1 : 0 }">它解得開你的 vault</div>
+      <div class="text-red-300 leading-none mb-1 transition-opacity duration-500"
+           :style="{ fontSize: '12px', opacity: $clicks >= 2 ? 1 : 0 }">它解得開這一包</div>
+      <Db title="vault —— 用 9f2a… 鎖起來的" locked
+          :cols="['名稱', '內容']"
+          :rows="[['a8f…', 'e91c…'], ['3b2…', '7d4a…']]" />
     </div>
   </template>
 </Stage>
@@ -395,18 +414,29 @@ class: text-center
 
 # 第二段結束
 
-<div class="text-xl opacity-80 mt-6">同一個密碼，長出兩樣東西</div>
+<div class="text-xl opacity-80 mt-4">同一個密碼，長出兩樣東西</div>
 
-<div class="mt-6 flex justify-center gap-4">
-  <div class="px-4 py-2 rounded-lg border border-amber-400/50 bg-amber-400/5 text-amber-300">
-    一個「給 server 看的」
-  </div>
-  <div class="px-4 py-2 rounded-lg border border-teal-400/50 bg-teal-400/5 text-teal-300">
-    一把「永遠不出門的」
-  </div>
+<div class="mt-7 grid grid-cols-2 gap-6 max-w-3xl mx-auto text-left">
+
+<div class="p-5 rounded-lg border-2 border-amber-400/45 bg-amber-400/5">
+<div class="font-mono text-amber-300">送出去那個 <span class="text-lg">hash</span></div>
+<div class="mt-3 text-base">只負責<b>證明我是我</b></div>
+<div class="mt-2 text-sm opacity-60 leading-relaxed">
+它離開了裝置，但 server 拿著它推不回密碼，也開不了任何東西
+</div>
 </div>
 
-<div class="mt-10 text-base opacity-60 max-w-2xl mx-auto leading-relaxed">
+<div class="p-5 rounded-lg border-2 border-teal-400/45 bg-teal-400/5">
+<div class="font-mono text-teal-300">留在本機那把 <span class="text-lg">key</span></div>
+<div class="mt-3 text-base">只負責<b>開我的 vault</b></div>
+<div class="mt-2 text-sm opacity-60 leading-relaxed">
+它從頭到尾沒有離開過這台裝置，所以沒有第二個人有
+</div>
+</div>
+
+</div>
+
+<div class="mt-8 text-base opacity-60 max-w-2xl mx-auto leading-relaxed">
 到這裡，零知識保護資料的最小版本<b class="opacity-100">已經成立了</b>
 </div>
 
@@ -424,14 +454,20 @@ clicks: 3
 
 # 先講痛
 
-<div class="text-base opacity-75 mb-1">
-
-加密的 vault 拿回本機，一定要**解開**才用得了。而那把 key 是**密碼算出來的** ——
-
+<div class="flex items-center justify-center gap-4 mt-1">
+  <Token label="你打的密碼" value="hunter2" variant="plain" />
+  <div class="flex flex-col items-center opacity-45 leading-none gap-0.5" style="font-size: 11px">
+    <span>算出</span><span class="text-lg">→</span>
+  </div>
+  <Token label="只有本機有" value="key" variant="key" />
+  <div class="flex flex-col items-center opacity-45 leading-none gap-0.5" style="font-size: 11px">
+    <span>才解得開</span><span class="text-lg">→</span>
+  </div>
+  <Token label="從 server 拿回本機" value="vault" variant="data" locked />
 </div>
 
-<div class="text-center text-lg mb-5">
-所以「想開 vault」現在等於「手上要有密碼」，這兩件事被<b class="text-amber-300">綁死了</b>
+<div class="text-center text-lg mt-4 mb-5">
+反過來讀 ——「想開右邊那個」就等於「手上要有左邊那個」，兩件事被<b class="text-amber-300">綁死了</b>
 </div>
 
 <div class="grid grid-cols-2 gap-5">
@@ -483,12 +519,10 @@ clicks: 2
   <div class="absolute inset-0 transition-opacity duration-500 text-center"
        :style="{ opacity: $clicks === 1 ? 1 : 0 }">
     <div class="text-base">圖一點都沒變，只是<b>貼上名字</b></div>
-    <div class="text-sm opacity-55 mt-1">你已經懂的東西，現在有官方稱呼了 —— 不用重新理解任何事</div>
   </div>
   <div class="absolute inset-0 transition-opacity duration-500 text-center"
        :style="{ opacity: $clicks >= 2 ? 1 : 0 }">
     <div class="text-base">Master Key <b class="text-amber-300">直接對 vault 做事</b>，而它只能從 master password 算出來</div>
-    <div class="text-sm opacity-55 mt-1">剛才那個兩難，完全是這一條線造成的 —— 不是密碼學的問題，是接線的問題</div>
   </div>
 </div>
 
@@ -498,7 +532,7 @@ clicks: 2
 
 # 在這條線的中間，插一把新的鑰匙
 
-<Wiring :step="5 + $clicks" />
+<Wiring :step="$clicks >= 1 ? 6 : 5" />
 
 <div class="relative mt-2" style="height: 46px">
   <div class="absolute inset-0 transition-opacity duration-500 text-center"
@@ -508,8 +542,70 @@ clicks: 2
   </div>
   <div class="absolute inset-0 transition-opacity duration-500 text-center"
        :style="{ opacity: $clicks >= 2 ? 1 : 0 }">
-    <div class="text-base">「開 vault 要什麼」跟「那個東西怎麼保管」<b class="text-teal-300">被拆開了</b></div>
-    <div class="text-sm opacity-55 mt-1">它可以被 Master Key 鎖，<b class="opacity-100">也可以被別的東西鎖</b> —— 出口就在這個「也可以」</div>
+    <div class="text-base text-amber-300">可是這樣到底解決了什麼？這把新的鑰匙自己又放哪？</div>
+    <div class="text-sm opacity-55 mt-1">要看懂，得把鏡頭拉到只剩幾樣東西的地方</div>
+  </div>
+</div>
+
+---
+clicks: 7
+---
+
+# 鏡頭拉近：這把新鑰匙怎麼解套
+
+<div class="text-sm opacity-50 -mt-2 mb-1">全場最繞的一張，我們慢慢走。台上只有三個角色。</div>
+
+<Zoom :step="$clicks" />
+
+<div class="relative mt-1" style="height: 44px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 0 ? 0.75 : 0 }">
+    Master Key、Symmetric Key、vault —— 先看清楚誰是誰
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 1 ? 0.85 : 0 }">
+    真正鎖住 vault 的是 <b>Symmetric Key</b>，它是隨機生的，跟你的密碼沒有任何關係
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 2 ? 0.85 : 0 }">
+    而 Symmetric Key 自己，再被 <b>Master Key</b> 鎖起來
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 3 ? 0.85 : 0 }">
+    這兩包鎖著的東西送去 server；要用資料時，也是這兩包一起被拉回本機
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 4 ? 1 : 0 }">
+    轉折在這 —— 打密碼算出 Master Key 之後，<b class="text-amber-300">解開的不是 vault，是 Symmetric Key</b>
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 5 ? 0.9 : 0 }">
+    這時候才隨機生一把 <b class="text-violet-300">session key</b> —— 它跟你的密碼一點關係都沒有
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 6 ? 0.9 : 0 }">
+    用它把 Symmetric Key 再鎖一次，得到<b class="text-violet-300">第二把鎖著的副本</b>，放在本機
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks >= 7 ? 1 : 0 }">
+    原本那把也鎖回去 —— 明文只存在剛剛那一瞬間，而
+    <b class="text-teal-300">vault 從頭到尾一個字都沒動過</b>
+  </div>
+</div>
+
+---
+clicks: 1
+---
+
+# 回到大圖 —— 那被鎖起來的一份，放在哪？
+
+<Wiring :step="6 + $clicks" />
+
+<div class="relative mt-2" style="height: 46px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center"
+       :style="{ opacity: $clicks >= 1 ? 1 : 0 }">
+    <div class="text-base">被 Master Key 鎖起來的那一份，<b>存在 server</b></div>
+    <div class="text-sm opacity-55 mt-1">所以換一台裝置，只要打對密碼就能把它拿回來解開 —— server 全程沒看過裡面</div>
   </div>
 </div>
 
@@ -531,35 +627,6 @@ layout: center
 </div>
 
 ---
-clicks: 4
----
-
-# unlock 那一瞬間
-
-<div class="text-sm opacity-50 -mt-2 mb-1">全場最繞的一張，我們慢慢走</div>
-
-<Zoom :step="$clicks" />
-
-<div class="relative mt-1" style="height: 40px">
-  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm opacity-70"
-       :style="{ opacity: $clicks === 1 ? 0.8 : 0 }">
-    你打的 master password 算出 Master Key，把 Symmetric Key 解開
-  </div>
-  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
-       :style="{ opacity: $clicks === 2 ? 0.8 : 0 }">
-    接著隨機生一把全新的鑰匙 —— 它跟你的密碼<b>一點關係都沒有</b>
-  </div>
-  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
-       :style="{ opacity: $clicks === 3 ? 0.8 : 0 }">
-    用它把 Symmetric Key <b>重新鎖一次</b>，放在本機 —— 硬碟上依然沒有明文
-  </div>
-  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
-       :style="{ opacity: $clicks >= 4 ? 0.8 : 0 }">
-    折衷方案完成：<b class="text-teal-300">不用一直打密碼，本機也沒有明文</b>
-  </div>
-</div>
-
----
 layout: section
 ---
 
@@ -568,12 +635,129 @@ layout: section
 完整走一遍
 
 ---
+clicks: 9
+---
+
+<Phases now="register" />
+
+<Flow phase="register" :step="$clicks" />
+
+<div class="relative -mt-1" style="height: 40px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 0 ? 0.7 : 0 }">一台全新的裝置 —— 兩邊都還是空的</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 1 ? 0.85 : 0 }">一切從你打進去的那串字開始</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 2 ? 0.85 : 0 }">先算出 <b>Master Key</b>，它永遠不會離開這台裝置</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 3 ? 0.85 : 0 }">再從它算出 <b>Master Password Hash</b> —— 這個才是要送出去的</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 4 ? 0.85 : 0 }">另外隨機生一把 <b>Symmetric Key</b>，它跟你的密碼一點關係都沒有</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 5 ? 0.85 : 0 }">你的 vault 現在還是明文，躺在記憶體裡</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 6 ? 0.85 : 0 }">鎖住 vault —— 鎖起來的那包才准落到硬碟</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 7 ? 0.85 : 0 }">再鎖住 Symmetric Key —— 硬碟上這兩包，一樣都打不開</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 8 ? 1 : 0 }">把這三樣送上去 —— <b>注意送的全是鎖著的或推不回去的</b></div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks >= 9 ? 1 : 0 }">關掉之後本機清空，<b class="text-teal-300">server 手上這三樣，沒有一樣打得開</b></div>
+</div>
+
+---
+clicks: 6
+---
+
+<Phases now="login" />
+
+<Flow phase="login" :step="$clicks" />
+
+<div class="relative -mt-1" style="height: 40px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 0 ? 0.7 : 0 }">本機是空的，東西全在 server 那邊</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 1 ? 0.85 : 0 }">一樣從打密碼開始</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 2 ? 0.85 : 0 }">算出 Master Key</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 3 ? 0.85 : 0 }">算出 Master Password Hash</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 4 ? 0.9 : 0 }">送去比對 —— server 只認得這個，<b>推不回你的密碼</b></div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 5 ? 0.9 : 0 }">驗過了，server 把<b>鎖著的那兩包</b>丟回來，落在硬碟</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks >= 6 ? 1 : 0 }">
+    <b>login 到這裡就結束了</b> —— 東西拿回來了，但還是鎖著的。<br>
+    <span class="text-xs opacity-70">你平常感覺不到，是因為 login 完會<b class="opacity-100">順手幫你做一次 unlock</b> —— 下一頁把那一段拆開來看</span>
+  </div>
+</div>
+
+---
 clicks: 4
 ---
 
-# 三欄，從頭記到尾
+<Phases now="unlock" />
 
-<Board :stage="$clicks" />
+<Flow phase="unlock" :step="$clicks" />
+
+<div class="relative -mt-1" style="height: 40px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 0 ? 0.7 : 0 }">這就是 login 停下來的地方 —— 東西在手上，但打不開</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 1 ? 0.85 : 0 }">Master Key 解開其中一包，Symmetric Key 回到記憶體</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 2 ? 0.9 : 0 }">
+    隨機生一把 <b class="text-violet-300">session key</b> —— 它<b>不留在裝置上</b>，是直接交到你手上
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 3 ? 0.9 : 0 }">用它把 Symmetric Key <b>再鎖一次</b>，這一份落到硬碟</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks >= 4 ? 1 : 0 }">
+    <b>記憶體整個清空</b> —— 能打開硬碟那一份的，只剩你手上那把 session key。
+    <b class="text-teal-300">整段沒跟 server 講過一句話</b>
+  </div>
+</div>
+
+---
+clicks: 2
+---
+
+<Phases now="lock" />
+
+<Flow phase="lock" :step="$clicks" />
+
+<div class="relative -mt-1" style="height: 40px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 0 ? 0.7 : 0 }">這是 unlock 完的樣子 —— 記憶體是空的，能開的那把在你手上</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 1 ? 0.9 : 0 }">
+    lock 做的事只有一件：<b>把硬碟上「被 session key 鎖的那一份」刪掉</b> ——
+    另外兩包<b class="text-teal-300">一個 byte 都沒動</b>
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks >= 2 ? 1 : 0 }">
+    你手上那把 <b class="text-violet-300">session key</b> 就這樣作廢了 ——
+    <b>不是被撤銷，是它能開的東西不見了</b>。重打一次密碼就能再 unlock，<b class="text-teal-300">不用連網</b>
+  </div>
+</div>
+
+---
+clicks: 2
+---
+
+<Phases now="logout" />
+
+<Flow phase="logout" :step="$clicks" />
+
+<div class="relative -mt-1" style="height: 40px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 0 ? 0.7 : 0 }">從 lock 完的樣子開始</div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 1 ? 0.9 : 0 }">logout 再往下一步：<b>連硬碟上鎖著的那兩包也刪掉</b></div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks >= 2 ? 1 : 0 }">本機什麼都不剩，要再用只能重新 login，而且<b class="text-red-300">一定要連網</b></div>
+</div>
 
 ---
 layout: center
