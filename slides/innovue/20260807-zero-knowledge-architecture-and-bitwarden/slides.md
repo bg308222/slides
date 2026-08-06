@@ -23,41 +23,51 @@ layout: center
 
 # 今天怎麼走
 
-<div class="grid grid-cols-2 gap-8 mt-8 text-left">
+<div class="grid grid-cols-2 gap-x-10 gap-y-5 mt-8 text-left max-w-3xl mx-auto">
 
 <div>
-
-<div class="text-xs uppercase tracking-widest opacity-40 mb-3">上半場</div>
+<div class="text-xs uppercase tracking-widest opacity-40 mb-2">第一段</div>
 
 **用「登入」感受零知識**
 
-<div class="text-sm opacity-70 mt-3 leading-relaxed">
-
-四步演進，每一步都在問同一件事：<br>
-為了讓你登入，server 到底得知道多少？
-
+<div class="text-sm opacity-65 mt-2 leading-relaxed">
+四步演進。為了讓你登入，server 到底得知道多少？
 </div>
-
 </div>
 
 <div>
+<div class="text-xs uppercase tracking-widest opacity-40 mb-2">第二段</div>
 
-<div class="text-xs uppercase tracking-widest opacity-40 mb-3">下半場</div>
+**零知識怎麼保護「資料」**
 
-**Bitwarden 怎麼保護「資料」**
+<div class="text-sm opacity-65 mt-2 leading-relaxed">
+密碼可以靠「回不去」保護，但資料<b>必須回得去</b>。
+</div>
+</div>
 
-<div class="text-sm opacity-70 mt-3 leading-relaxed">
+<div>
+<div class="text-xs uppercase tracking-widest opacity-40 mb-2">第三段</div>
 
-密碼可以用「回不去」保護，<br>
-但資料**必須回得去** —— 那怎麼辦？
+**Bitwarden 還多做了什麼？**
 
+<div class="text-sm opacity-65 mt-2 leading-relaxed">
+第二段那套已經能動了。但一天要用幾十次呢？
+</div>
+</div>
+
+<div>
+<div class="text-xs uppercase tracking-widest opacity-40 mb-2">第四段</div>
+
+**完整走一遍**
+
+<div class="text-sm opacity-65 mt-2 leading-relaxed">
+register / login / lock / unlock / logout，三欄記到底。
+</div>
 </div>
 
 </div>
 
-</div>
-
-<div class="mt-12 text-sm opacity-45">
+<div class="mt-10 text-sm opacity-45">
 不會出現任何演算法名稱與參數。今天只講「東西在誰手上」。
 </div>
 
@@ -65,9 +75,9 @@ layout: center
 layout: section
 ---
 
-# 上半場
+# 第一段
 
-以達成「登入」來感受零知識
+用「登入」感受零知識 —— 保護密碼
 
 ---
 clicks: 4
@@ -133,7 +143,8 @@ clicks: 4
   <template #client>
     <div class="flex items-center gap-3">
       <Token label="使用者輸入" value="hunter2" variant="plain" :dim="$clicks < 1" />
-      <span class="opacity-40 text-lg" v-show="$clicks >= 2">→</span>
+      <span class="text-lg transition-opacity duration-500"
+            :style="{ opacity: $clicks >= 2 ? 0.4 : 0 }">→</span>
       <Token label="本機算完" value="9f2a…" variant="hash" :dim="$clicks < 2" />
     </div>
   </template>
@@ -204,7 +215,8 @@ clicks: 5
   <template #client>
     <div class="flex items-center gap-3">
       <Token value="hunter2" variant="plain" :dim="$clicks < 1" />
-      <span class="opacity-40 text-lg" v-show="$clicks >= 2">→</span>
+      <span class="text-lg transition-opacity duration-500"
+            :style="{ opacity: $clicks >= 2 ? 0.4 : 0 }">→</span>
       <Token label="本機 hash" value="9f2a…" variant="hash" :dim="$clicks < 2" />
     </div>
   </template>
@@ -213,7 +225,7 @@ clicks: 5
   </template>
   <template #server>
     <div class="flex flex-col items-center gap-2 w-full">
-      <Token label="server 再加 salt hash 一次" value="c41d…" variant="locked" :dim="$clicks < 4" />
+      <Token label="server 再加 salt hash 一次" value="c41d…" variant="muted" :dim="$clicks < 4" />
       <Db :cols="['帳號', 'salt', 'hash']" :rows="[['andy', 's4Lm…', 'c41d…']]" :dim="$clicks < 4" />
     </div>
   </template>
@@ -234,7 +246,7 @@ layout: center
 class: text-center
 ---
 
-# 上半場結束
+# 第一段結束
 
 <div class="text-xl opacity-80 mt-6">秘密永遠只在你的裝置上</div>
 
@@ -244,6 +256,14 @@ class: text-center
 </div>
 
 ---
+layout: section
+---
+
+# 第二段
+
+零知識怎麼保護「資料」
+
+---
 clicks: 3
 ---
 
@@ -251,13 +271,13 @@ clicks: 3
 
 <Stage>
   <template #client>
-    <Token value="hunter2" variant="plain" note="前四步都只是為了進得來" />
+    <Token value="hunter2" variant="plain" note="前五步都只是為了進得來" />
   </template>
   <template #server>
     <div class="w-full flex flex-col items-center gap-2">
       <Db :cols="['帳號', 'salt', 'hash']" :rows="[['andy', 's4Lm…', 'c41d…']]" />
-      <div class="w-full transition-all duration-700"
-           :class="$clicks >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
+      <div class="w-full transition-opacity duration-700"
+           :style="{ opacity: $clicks >= 1 ? 1 : 0 }">
         <Db title="vault —— 使用者真正的資料"
             :cols="['名稱', '帳號', '密碼']"
             :rows="[['GitHub', 'andy', '???'], ['銀行', 'andy', '???']]" />
@@ -267,7 +287,7 @@ clicks: 3
 </Stage>
 
 <div v-click="2" class="mt-4 text-center text-lg">
-這一定要是<b class="text-sky-300">密文</b> —— 不然前面四步都白做了
+這一定要是<b class="text-sky-300">密文</b> —— 不然前面五步都白做了
 </div>
 
 <div v-click="3" class="mt-2 text-center text-sm opacity-55">
@@ -292,16 +312,8 @@ hash 是因為 <b class="text-amber-300">回不去</b> 才安全
 </div>
 
 <div class="mt-10 text-base opacity-55">
-不然存了等於沒存 —— 前半場的所有招式，在這裡<b class="opacity-100">全部用不了</b>
+不然存了等於沒存 —— 第一段的所有招式，在這裡<b class="opacity-100">全部用不了</b>
 </div>
-
----
-layout: section
----
-
-# 下半場
-
-那這個密文，是怎麼來的？
 
 ---
 clicks: 3
@@ -309,7 +321,7 @@ clicks: 3
 
 # 先試最直覺的做法
 
-資料要可逆，就一定要有一把開得回來的鑰匙。那就拿前半場已經有的東西來用 ——
+資料要可逆，就一定要有一把開得回來的鑰匙。那就拿第一段已經有的東西來用 ——
 
 <Stage>
   <template #client>
@@ -321,64 +333,184 @@ clicks: 3
   <template #server>
     <div class="flex flex-col items-center gap-2">
       <Token label="server 手上也有" value="9f2a…" variant="hash" :dim="$clicks < 2" />
-      <div v-show="$clicks >= 2" class="text-red-400 text-2xl">↓</div>
-      <div v-show="$clicks >= 2" class="text-red-300 text-sm">它解得開你的 vault</div>
+      <div class="text-red-400 text-2xl transition-opacity duration-500"
+           :style="{ opacity: $clicks >= 2 ? 1 : 0 }">↓</div>
+      <div class="text-red-300 text-sm transition-opacity duration-500"
+           :style="{ opacity: $clicks >= 2 ? 1 : 0 }">它解得開你的 vault</div>
     </div>
   </template>
 </Stage>
 
 <div v-click="3" class="mt-4 p-4 rounded border-l-4 border-amber-400 bg-amber-400/5">
 
-問題不是這把鑰匙不夠強 ——
-**是它被要求同時做兩件事**：證明我是我，而且開我的資料。
+只要拿 **server 也有的東西**來加密，就一定行不通。
+所以那把鑰匙，只能從 **server 沒有的地方**生出來。
 
 </div>
+
+---
+clicks: 3
+---
+
+# 那就退回 client，盤點一次
+
+<Wiring :step="$clicks" />
+
+<div class="relative mt-2" style="height: 46px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center"
+       :style="{ opacity: $clicks === 1 ? 1 : 0 }">
+    <div class="text-base">同一個密碼，還能再算出<b class="text-teal-300">一把只有這台裝置知道的鑰匙</b></div>
+    <div class="text-sm opacity-55 mt-1">它跟 hash 互相推不回去，而且從頭到尾不送出去</div>
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center"
+       :style="{ opacity: $clicks === 2 ? 1 : 0 }">
+    <div class="text-base">加密只能發生在<b class="text-teal-300">有鑰匙的那一邊</b></div>
+    <div class="text-sm opacity-55 mt-1">所以資料得先回到自己手上</div>
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center"
+       :style="{ opacity: $clicks >= 3 ? 1 : 0 }">
+    <div class="text-base">鎖起來，再送回去 —— server 收到的是<b class="text-sky-300">一包它打不開的東西</b></div>
+    <div class="text-sm opacity-55 mt-1">client 留著：hunter2、hash、key、明文 vault</div>
+  </div>
+</div>
+
+---
+layout: center
+---
+
+<ServerHolds
+  title="現在 server 知道什麼？"
+  :items="[
+    { text: '一個驗證得了、但推不回密碼的值', safe: true },
+    { text: '一包加密的 vault', safe: true },
+    { text: '解得開它的那把鑰匙 —— <b>它根本沒有</b>', safe: true },
+  ]"
+  verdict="它能確認你是你，也能替你保管東西，卻<b>沒有能力</b>知道那是什麼。"
+/>
 
 ---
 layout: center
 class: text-center
 ---
 
-<div class="text-4xl font-bold leading-tight">
-一把鑰匙<br>不能同時做兩件事
+# 第二段結束
+
+<div class="text-xl opacity-80 mt-6">同一個密碼，長出兩樣東西</div>
+
+<div class="mt-6 flex justify-center gap-4">
+  <div class="px-4 py-2 rounded-lg border border-amber-400/50 bg-amber-400/5 text-amber-300">
+    一個「給 server 看的」
+  </div>
+  <div class="px-4 py-2 rounded-lg border border-teal-400/50 bg-teal-400/5 text-teal-300">
+    一把「永遠不出門的」
+  </div>
 </div>
 
-<div class="mt-10 text-base opacity-55 max-w-xl mx-auto leading-relaxed">
-接下來的每一次分裂，都是因為有人叫一把鑰匙做兩件事，然後壞掉了
+<div class="mt-10 text-base opacity-60 max-w-2xl mx-auto leading-relaxed">
+到這裡，零知識保護資料的最小版本<b class="opacity-100">已經成立了</b>
 </div>
 
-<div class="mt-8 flex justify-center gap-3 text-xs opacity-40">
-<span class="px-3 py-1 rounded-full border border-white/20">第一次：認證 / 解密</span>
-<span class="px-3 py-1 rounded-full border border-white/20">第二次：鎖資料 / 綁密碼</span>
-<span class="px-3 py-1 rounded-full border border-white/20">第三次：長期 / 臨時</span>
-</div>
+---
+layout: section
+---
+
+# 第三段
+
+Bitwarden 還多做了什麼？
 
 ---
 clicks: 3
 ---
 
-# 第一次分裂：證明我是我 / 開我的資料
+# 先講痛
 
-<div class="mt-6">
-<Split
-  :step="$clicks"
-  root-label="從 master password 長出一個根"
-  root="Master Key"
-  left-label="送去 server"
-  left="Master Password Hash"
-  left-note="只負責 <b>證明我是我</b>"
-  right-label="留在本機，永不送出"
-  right="Stretched Master Key"
-  right-note="只負責 <b>開我的資料</b>"
-  :root-at="1"
-  :split-at="2"
-/>
+<div class="text-base opacity-75 mb-1">
+
+加密的 vault 拿回本機，一定要**解開**才用得了。而那把 key 是**密碼算出來的** ——
+
 </div>
 
-<div v-click="3" class="mt-6 text-center">
+<div class="text-center text-lg mb-5">
+所以「想開 vault」現在等於「手上要有密碼」，這兩件事被<b class="text-amber-300">綁死了</b>
+</div>
 
-兩條互相**推不回去** —— 就是前半場那個「回不去」，再用一次
+<div class="grid grid-cols-2 gap-5">
 
+<div class="p-4 rounded-lg border-2 border-white/15 transition-opacity duration-500"
+     :style="{ opacity: $clicks >= 1 ? 1 : 0 }">
+
+### 方案 A
+
+<div class="text-sm opacity-75 mt-2">每次要用，就重打一次密碼</div>
+
+<div class="mt-4 space-y-1.5 text-sm">
+<div class="text-teal-300">✓ 安全上完全沒問題</div>
+<div class="text-red-300">✗ 一天幾十次，沒有人受得了</div>
+</div>
+
+</div>
+
+<div class="p-4 rounded-lg border-2 border-white/15 transition-opacity duration-500"
+     :style="{ opacity: $clicks >= 2 ? 1 : 0 }">
+
+### 方案 B
+
+<div class="text-sm opacity-75 mt-2">第一次解開後，把明文 vault 存在本機</div>
+
+<div class="mt-4 space-y-1.5 text-sm">
+<div class="text-teal-300">✓ 方便</div>
+<div class="text-red-300">✗ 明文從此永遠躺在這台裝置上</div>
+</div>
+
+</div>
+
+</div>
+
+<div class="mt-5 text-center text-xl transition-opacity duration-500"
+     :style="{ opacity: $clicks >= 3 ? 1 : 0 }">
+有沒有折衷？<b class="text-teal-300">不用一直打密碼，也不要在本機留明文</b>
+</div>
+
+---
+clicks: 2
+---
+
+# 要回答這題，得先把圖看清楚
+
+<Wiring :step="3 + $clicks" />
+
+<div class="relative mt-2" style="height: 46px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center"
+       :style="{ opacity: $clicks === 1 ? 1 : 0 }">
+    <div class="text-base">圖一點都沒變，只是<b>貼上名字</b></div>
+    <div class="text-sm opacity-55 mt-1">你已經懂的東西，現在有官方稱呼了 —— 不用重新理解任何事</div>
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center"
+       :style="{ opacity: $clicks >= 2 ? 1 : 0 }">
+    <div class="text-base">Master Key <b class="text-amber-300">直接對 vault 做事</b>，而它只能從 master password 算出來</div>
+    <div class="text-sm opacity-55 mt-1">剛才那個兩難，完全是這一條線造成的 —— 不是密碼學的問題，是接線的問題</div>
+  </div>
+</div>
+
+---
+clicks: 2
+---
+
+# 在這條線的中間，插一把新的鑰匙
+
+<Wiring :step="5 + $clicks" />
+
+<div class="relative mt-2" style="height: 46px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center"
+       :style="{ opacity: $clicks === 1 ? 1 : 0 }">
+    <div class="text-base">Master Key 從此<b>不再碰 vault</b>，它只負責開那一小把</div>
+    <div class="text-sm opacity-55 mt-1">真正鎖著 vault 的，是一把隨機產生的鑰匙</div>
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center"
+       :style="{ opacity: $clicks >= 2 ? 1 : 0 }">
+    <div class="text-base">「開 vault 要什麼」跟「那個東西怎麼保管」<b class="text-teal-300">被拆開了</b></div>
+    <div class="text-sm opacity-55 mt-1">它可以被 Master Key 鎖，<b class="opacity-100">也可以被別的東西鎖</b> —— 出口就在這個「也可以」</div>
+  </div>
 </div>
 
 ---
@@ -387,147 +519,61 @@ layout: center
 
 <ServerHolds
   :items="[
-    { text: '一個驗證得了、但反推不回密碼的值', safe: true },
-    { text: '解開資料的那把鑰匙 —— <b>它根本沒有</b>', safe: true },
-  ]"
-  verdict="所以 server 能驗證你是你，卻<b>沒有能力</b>解開你的資料。<br>不是它保證不看，是它手上根本沒有那把。"
-/>
-
----
-clicks: 3
----
-
-# 那就用留下來那把直接鎖 vault
-
-<Stage no-wire client-title="CLIENT" server-title="SERVER">
-  <template #client>
-    <Token label="留在本機那把" value="Stretched Master Key" variant="key" />
-    <div class="text-2xl opacity-40">↓</div>
-    <div class="text-xs opacity-55">直接加密整個 vault</div>
-  </template>
-  <template #server>
-    <Db title="加密後的 vault"
-        :cols="['名稱', '內容']"
-        :rows="[['a8f…', 'e91c…'], ['3b2…', '7d4a…']]" />
-  </template>
-</Stage>
-
-<div v-click="1" class="mt-4 text-center text-base opacity-70">
-可以動，沒問題。但問一句 ——
-</div>
-
-<div v-click="2" class="mt-3 text-center text-2xl">
-改 master password 會發生什麼事？
-</div>
-
-<div v-click="3" class="mt-5 p-4 rounded border-l-4 border-red-400 bg-red-400/5">
-
-鑰匙一換，**整個 vault 要全部重新加密一遍**。
-資料越多越痛，而且重加密的當下，所有明文都得攤開。
-
-</div>
-
----
-clicks: 3
----
-
-# 第二次分裂：鎖資料的 / 綁密碼的
-
-<div class="flex items-center justify-center gap-6 mt-8">
-
-<Token label="① 隨機產生一把" value="Symmetric Key" variant="key" :dim="$clicks < 1"
-       note="真正鎖著 vault 的就是它" />
-
-<div class="text-2xl opacity-30" v-show="$clicks >= 2">被鎖進</div>
-
-<Token label="② 再被密碼衍生物鎖起來" value="Protected Symmetric Key" variant="locked" :dim="$clicks < 2"
-       note="存在 server 上" />
-
-</div>
-
-<div class="text-center mt-6 text-sm opacity-50" v-show="$clicks >= 2">
-vault ← 被 Symmetric Key 鎖　｜　Symmetric Key ← 被 Stretched Master Key 鎖
-</div>
-
-<div v-click="3" class="mt-8 p-4 rounded border-l-4 border-teal-400 bg-teal-400/5">
-
-改密碼只要**重包那一小把**，vault 一個字都不用動。
-
-<div class="mt-2 text-sm opacity-70">換鎖頭，不用換保險箱裡的東西。</div>
-
-</div>
-
----
-layout: center
----
-
-<ServerHolds
-  :items="[
-    { text: '一個驗證得了、但反推不回密碼的值', safe: true },
-    { text: '一把被鎖起來的鑰匙（Protected Symmetric Key）', safe: true },
-    { text: '一整包加密的 vault', safe: true },
+    { text: 'Master Password Hash —— 驗證得了，但推不回密碼', safe: true },
+    { text: 'Protected Symmetric Key —— 鎖著的', safe: true },
+    { text: '加密的 vault —— 也是鎖著的', safe: true },
   ]"
   verdict="三樣東西，<b>沒有一樣打得開</b>。<br>而解開它們需要的那把，從頭到尾沒離開過你的裝置。"
 />
 
----
-clicks: 4
----
-
-# 第三次分裂：長期的 / 臨時的
-
-每次要用都重打一次 master password 太煩，但解開的鑰匙一直留著又等於沒鎖。
-
-<div class="grid grid-cols-2 gap-5 mt-8">
-
-<div class="p-4 rounded-lg border-2 border-amber-400/40 bg-amber-400/5 transition-opacity duration-500"
-     :class="$clicks >= 1 ? 'opacity-100' : 'opacity-20'">
-
-### lock
-
-<div class="mt-3 space-y-2 text-sm">
-<div class="text-red-300">✗ 鑰匙 —— 丟掉</div>
-<div class="text-teal-300">✓ 鎖著的東西 —— 留在本機</div>
-</div>
-
-<div class="mt-4 text-xs opacity-60" v-show="$clicks >= 3">
-unlock 只是把鑰匙<b>重算一次</b><br>
-→ <b class="text-teal-300">完全不需要連網</b>
-</div>
-
-</div>
-
-<div class="p-4 rounded-lg border-2 border-red-400/40 bg-red-400/5 transition-opacity duration-500"
-     :class="$clicks >= 2 ? 'opacity-100' : 'opacity-20'">
-
-### logout
-
-<div class="mt-3 space-y-2 text-sm">
-<div class="text-red-300">✗ 鑰匙 —— 丟掉</div>
-<div class="text-red-300">✗ 鎖著的東西 —— 也一起丟掉</div>
-</div>
-
-<div class="mt-4 text-xs opacity-60" v-show="$clicks >= 3">
-東西都不在了，只能跟 server 重拿<br>
-→ <b class="text-red-300">必須連網</b>
-</div>
-
-</div>
-
-</div>
-
-<div v-click="4" class="mt-6 text-center text-base">
-差別講白了就是：<b>加密後的 vault 有沒有留在裝置上</b>
+<div class="max-w-3xl mx-auto mt-5 text-sm opacity-55 text-center">
+順帶一提：改 master password 時，只要重包那一小把 —— vault 一個字都不用動。
 </div>
 
 ---
 clicks: 4
-layout: default
 ---
 
-# 現在才把完整的圖攤開
+# unlock 那一瞬間
 
-<FullMap :step="$clicks" />
+<div class="text-sm opacity-50 -mt-2 mb-1">全場最繞的一張，我們慢慢走</div>
+
+<Zoom :step="$clicks" />
+
+<div class="relative mt-1" style="height: 40px">
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm opacity-70"
+       :style="{ opacity: $clicks === 1 ? 0.8 : 0 }">
+    你打的 master password 算出 Master Key，把 Symmetric Key 解開
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 2 ? 0.8 : 0 }">
+    接著隨機生一把全新的鑰匙 —— 它跟你的密碼<b>一點關係都沒有</b>
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks === 3 ? 0.8 : 0 }">
+    用它把 Symmetric Key <b>重新鎖一次</b>，放在本機 —— 硬碟上依然沒有明文
+  </div>
+  <div class="absolute inset-0 transition-opacity duration-500 text-center text-sm"
+       :style="{ opacity: $clicks >= 4 ? 0.8 : 0 }">
+    折衷方案完成：<b class="text-teal-300">不用一直打密碼，本機也沒有明文</b>
+  </div>
+</div>
+
+---
+layout: section
+---
+
+# 第四段
+
+完整走一遍
+
+---
+clicks: 4
+---
+
+# 三欄，從頭記到尾
+
+<Board :stage="$clicks" />
 
 ---
 layout: center
@@ -550,22 +596,23 @@ class: text-center
 layout: center
 ---
 
-# 附錄：CLI 上的 session key
+# 附錄：CLI 上的 BW_SESSION
 
 <div class="max-w-3xl">
 
 <div class="text-sm opacity-70 mb-4">
-<code>bw unlock</code> 會吐一串 <code>BW_SESSION</code>，之後帶著它就不用再打 master password。
+剛才那把 session key，在 CLI 上是看得見摸得到的 —— <code>bw unlock</code> 會直接把它印出來。
 </div>
 
 <div class="p-4 rounded border-l-4 border-teal-400 bg-teal-400/5 mb-4">
 
-它叫 session，但**不是通行證，是一把鑰匙**。
+**為什麼 CLI 一定要把它交給你？**
 
 <div class="text-sm opacity-70 mt-2">
 
-CLI 每跑一次指令都是新的 process，記憶體不共享。
-所以 unlock 把算好的 Symmetric Key 用一把隨機鑰匙鎖起來存在本機 —— 那把隨機鑰匙就是 `BW_SESSION`。
+因為 CLI 每跑一次指令都是新的 process ——
+記分板上那欄「本機 memory」，在 CLI 上<b>根本不存在</b>。
+鎖著的 Symmetric Key 只能放硬碟，鑰匙只好交給使用者自己拿著。
 
 </div>
 
@@ -577,7 +624,7 @@ CLI 每跑一次指令都是新的 process，記憶體不共享。
 
 <div class="text-sm opacity-70 mt-2">
 
-因為本機存放那份加密結果的地方只有一格，新的 unlock 會覆寫掉它。
+因為硬碟上那一格只有一個位置，新的 unlock 會直接覆寫掉它。
 舊鑰匙沒有被撤銷、server 也完全不知情 —— 它只是**再也沒有東西可以開了**。
 
 </div>
@@ -587,8 +634,8 @@ CLI 每跑一次指令都是新的 process，記憶體不共享。
 </div>
 
 <div class="mt-4 text-xs opacity-45">
-延伸：<code>bw login</code> 拿到的是跟 server 講話的憑證（認證），<code>bw unlock</code> 拿到的是解本機資料的鑰匙（解密）——
-同一個分裂，在日常指令裡又出現一次。
+<code>bw login</code> 拿的是跟 server 講話的憑證，<code>bw unlock</code> 拿的是解本機資料的鑰匙 ——
+第二段長出來的那兩條線，在日常指令裡又出現一次。
 </div>
 
 </div>
