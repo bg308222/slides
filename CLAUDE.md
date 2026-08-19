@@ -62,7 +62,8 @@ just new report/20260801  # 新建簡報骨架
 
 ## Skills
 
-- `draft-to-deck`（`.claude/skills/`）：把條列式草稿編排成 Slidev 簡報。
+- `technical-report-draft`（`.claude/skills/`）：與已有初步切法的作者多輪推敲技術敘事、技術正確性與可視化的漸進推導，最後交付 `draft.md`。
+- `draft-to-deck`（`.claude/skills/`）：把已定稿的條列式草稿編排成 Slidev 簡報。
   給定草稿路徑時使用——會先讀懂草稿、提問釐清，再重新編排成 `slides.md`。
 
 ## 注意事項
