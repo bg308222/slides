@@ -11,8 +11,12 @@ import { computed } from 'vue'
  * 顏色即身份：victim = teal，attacker = fuchsia。
  * 最後一格 attacker 的欄位裡掛著一個 teal 的 token，顏色錯位就是那個洞。
  *
- * code_V 的兩段飛行都刻意跨越整個畫面（(285,58)→(690,362)→(285,234)），
+ * code_V 的兩段飛行都刻意跨越整個畫面（(238,42)→(770,252)→(238,170)），
  * 不是原地變色 —— 作者要求這一格顯眼到不可能感覺不到。
+ *
+ * 重要：飛走的是「抄到的那一份」，原本那一張**留在上軌**（淡化但不消失）。
+ * 這個攻擊沒有攔截、沒有搶奪，victim 那一趟照樣走完 ——
+ * 「code 其實沒被真的拿走，但仍然破功了」是這一頁唯一要讓人看見的事。
  *
  * SVG 文字一律用 inline style 設 font-size（presentation attribute 會被 theme 蓋掉）。
  */
@@ -26,9 +30,9 @@ const N = 'currentColor'
 
 /** code_V 的位置：上軌門口 → 攻擊者手上 → 下軌車上 */
 const codeVPos = computed(() => {
-  if (props.step <= 1) return 'translate(285, 42)'
-  if (props.step <= 3) return 'translate(690, 252)'
-  return 'translate(285, 170)'
+  if (props.step <= 1) return 'translate(238, 42)'
+  if (props.step <= 3) return 'translate(770, 252)'
+  return 'translate(238, 170)'
 })
 const upDim = computed(() => (props.step >= 2 ? 0.28 : 1))
 /** PKCE 開著時，比對在 step 6 就失敗，後面不再發 token */
@@ -67,10 +71,20 @@ const issued = computed(() => !props.pkce && props.step >= 7)
       <text x="790" y="52" text-anchor="middle" fill="#7dd3fc" style="font-size: 12px">Authorization</text>
       <text x="790" y="70" text-anchor="middle" fill="#7dd3fc" style="font-size: 12px">Server</text>
 
-      <text v-if="step >= 2" x="20" y="96" :fill="V" opacity="0.8" style="font-size: 11px">
-        victim 這一趟甚至可能成功登入了 —— 他毫無感覺
+      <text v-if="step >= 2" x="20" y="118" :fill="V" opacity="0.8" style="font-size: 11px">
+        victim 這一趟照樣走完、照樣登入成功 —— 他毫無感覺
       </text>
     </g>
+
+    <!-- 原本那一張 code_V：留在上軌。沒有人來搶，被抄走的只是它的值 -->
+    <g transform="translate(238, 42)"
+       :style="{ opacity: step >= 1 ? (step >= 2 ? 0.3 : 1) : 0, transition: 'opacity .7s' }">
+      <rect x="0" y="0" width="86" height="30" rx="5" :fill="V" fill-opacity="0.18"
+            :stroke="V" stroke-width="2.5" />
+      <text x="43" y="20" text-anchor="middle" :fill="V" style="font-size: 12px">code_V</text>
+    </g>
+    <text v-if="step >= 2 && !rejected" x="281" y="88" text-anchor="middle" :fill="V"
+          opacity="0.5" style="font-size: 10px">原本那一張還在</text>
 
     <!-- ── 下軌：attacker ── -->
     <g>
@@ -94,24 +108,25 @@ const issued = computed(() => !props.pkce && props.step >= 7)
 
     <!-- 攻擊者手上（畫面外側的暫存格） -->
     <g :style="{ opacity: rejected ? 0 : (step >= 4 ? 0.25 : (step >= 2 ? 1 : 0)), transition: 'opacity .5s' }">
-      <rect x="660" y="244" width="212" height="44" rx="8"
+      <rect x="640" y="244" width="232" height="44" rx="8"
             :fill="A" fill-opacity="0.08" :stroke="A" stroke-opacity="0.6"
             stroke-width="2" stroke-dasharray="5 4" />
-      <text x="766" y="272" text-anchor="middle" :fill="A" opacity="0.85"
-            style="font-size: 11px">攻擊者手上</text>
+      <text x="654" y="272" :fill="A" opacity="0.85"
+            style="font-size: 10.5px">攻擊者手上（同一個值）</text>
     </g>
 
     <!-- attacker 自己那趟拿到的 code_A：注入時被丟掉 -->
-    <g :transform="step >= 4 ? 'translate(285, 236)' : 'translate(285, 170)'"
+    <g :transform="step >= 4 ? 'translate(238, 236)' : 'translate(238, 170)'"
        :style="{ opacity: step < 3 ? 0 : (step >= 4 ? 0 : 1), transition: 'all .8s ease-in-out' }">
       <rect x="0" y="0" width="86" height="30" rx="5" :fill="A" fill-opacity="0.15"
             :stroke="A" stroke-opacity="0.8" stroke-width="2" />
       <text x="43" y="20" text-anchor="middle" :fill="A" style="font-size: 12px">code_A</text>
     </g>
 
-    <!-- ★ code_V：兩段長距離飛行 -->
-    <g :transform="codeVPos" style="transition: transform 1.1s cubic-bezier(.6,0,.3,1)"
-       :style="{ opacity: step >= 1 ? 1 : 0 }">
+    <!-- ★ 被抄走的那一份 code_V：兩段長距離飛行 -->
+    <g :transform="codeVPos"
+       :style="{ opacity: step >= 2 ? 1 : 0,
+                 transition: 'transform 1.1s cubic-bezier(.6,0,.3,1), opacity .5s' }">
       <rect x="0" y="0" width="86" height="30" rx="5" :fill="V" fill-opacity="0.18"
             :stroke="V" stroke-width="2.5" />
       <text x="43" y="20" text-anchor="middle" :fill="V" style="font-size: 12px">code_V</text>
@@ -124,7 +139,7 @@ const issued = computed(() => !props.pkce && props.step >= 7)
 
     <!-- 注入標記 -->
     <g :style="{ opacity: step === 4 ? 1 : 0, transition: 'opacity .4s' }">
-      <text x="252" y="226" fill="#f87171" style="font-size: 15px" font-weight="bold">
+      <text x="205" y="238" fill="#f87171" style="font-size: 15px" font-weight="bold">
         ↑ 這一格就是整場的洞
       </text>
     </g>

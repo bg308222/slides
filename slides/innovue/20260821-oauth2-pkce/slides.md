@@ -295,183 +295,190 @@ layout: section
 client 其實有兩種
 
 ---
-clicks: 5
----
-
-# ⑧ 這兩種 client，規格給了它們名字
-
-<div v-click="1" class="mt-2 px-4 py-2 rounded bg-indigo-400/10 border-l-4 border-indigo-400 text-left"
-     style="font-size: 13px">
-
-剛才那兩種應用，差別只有一件事 —— **有沒有能力持有 `client_secret`**。
-規格給了它們名字。
-
-</div>
-
-<div class="grid grid-cols-2 gap-4 mt-4">
-
-<div v-click="2" class="px-4 py-3 rounded-lg border-2 border-red-400/50 bg-red-400/5 text-left">
-
-<div class="font-bold text-red-300 mb-2">public — 沒有能力</div>
-
-<div style="font-size: 12px" class="opacity-80 leading-relaxed">
-
-**純前端應用**：程式碼就在使用者手上。
-
-**native app**：binary 可被反編譯，而且裡面的 secret 對**所有安裝者是同一份**。
-
-</div>
-
-</div>
-
-<div v-click="3" class="px-4 py-3 rounded-lg border-2 border-teal-400/50 bg-teal-400/5 text-left">
-
-<div class="font-bold text-teal-300 mb-2">confidential — 有能力</div>
-
-<div style="font-size: 12px" class="opacity-80 leading-relaxed">
-
-由**你自己控制的機器**持有 `client_id` 並做 code exchange。
-
-</div>
-
-</div>
-
-</div>
-
-<div v-click="4" class="mt-4 px-4 py-2 rounded bg-gray-500/10 text-left" style="font-size: 12px">
-
-分的不是「這個應用有沒有 server」，而是
-**那個持有 `client_id`、做 code exchange 的東西，跑在誰控制的機器上** ——
-跟第一段的結論是同一句話。
-
-</div>
-
-<div v-click="5" class="mt-3 text-sm opacity-70">
-RFC 8252 §8.5：對 public native app 要求 shared secret 認證
-<b class="text-red-300">"serves little value beyond client identification"</b> ——
-只剩「宣稱」，沒有「證明」。
-</div>
-
----
 clicks: 4
 ---
 
-# ⑨ 同一張清單，只差一格
+# ⑧ 規格怎麼定義這兩種 client
 
-<div class="text-sm opacity-60 mb-3">
-假設攻擊者用某種途徑拿到了 code —— 哪一種先不重要。
+<div class="grid grid-cols-2 gap-5 mt-2 text-left">
+
+<div v-click="1" class="rounded-lg border-2 border-red-400/50 bg-red-400/5 px-4 py-2.5">
+
+<div class="font-bold text-red-300" style="font-size: 14px">public client</div>
+<div class="opacity-40 mb-1.5" style="font-size: 10px">RFC 6749 §2.1</div>
+<div class="italic opacity-80 leading-snug" style="font-size: 11.5px">
+
+"Clients **incapable** of maintaining the confidentiality of their credentials
+(e.g., clients executing on the **device used by the resource owner**, such as an
+**installed native application** or a **web browser-based application**)"
+
+</div>
 </div>
 
-<div class="max-w-2xl mx-auto">
-<CheckList
-  :items="[
-    { label: 'client_id', ok: true },
-    { label: 'redirect_uri', ok: true },
-    { label: 'code 有效、未使用', ok: true },
-    { label: 'client_secret', ok: false, note: '← 新加的這一格' },
-  ]"
-  :reveal="$clicks >= 2 ? -1 : 3"
-  :verdict="$clicks >= 3 ? '三綠一紅 —— <b>攻擊被擋住了。</b>' : ''"
-  verdict-tone="good"
-/>
+<div v-click="2" class="rounded-lg border-2 border-teal-400/50 bg-teal-400/5 px-4 py-2.5">
+
+<div class="font-bold text-teal-300" style="font-size: 14px">confidential client</div>
+<div class="opacity-40 mb-1.5" style="font-size: 10px">RFC 6749 §2.1</div>
+<div class="italic opacity-80 leading-snug" style="font-size: 11.5px">
+
+"Clients **capable** of maintaining the confidentiality of their credentials
+(e.g., client implemented on a **secure server** with restricted access to the
+client credentials)"
+
+</div>
 </div>
 
-<div v-click="4" class="mt-6 text-center text-xl text-teal-300">
-看起來 client_secret 解決了問題。
+</div>
+
+<ClientKinds :step="$clicks - 2" class="mt-4" />
+
+<div v-click="4" class="mt-3 px-4 py-0 rounded bg-gray-500/10 text-left" style="font-size: 10.5px">
+
+RFC 6749 §2.1 自己就講了這種分兩半的情況：*"A client may be implemented as a **distributed set of components**, each with a different client type ... a distributed client with both a **confidential server-based component** and a **public browser-based component**."*
+
 </div>
 
 ---
-clicks: 3
+clicks: 5
 ---
 
-# ⑩ 但那是副作用，不是它的職責
+# ⑨ 那 confidential 是不是就安全了？
 
-<div class="max-w-2xl mx-auto mt-4">
-<Axis
-  :first-answer="$clicks >= 1
-    ? '<code>client_secret</code> 回答的就是這一題。'
-    : ''"
-/>
-</div>
-
-<div v-click="2" class="mt-5 px-4 py-2.5 rounded bg-gray-500/10 text-left max-w-2xl mx-auto"
+<div v-click="1" class="mt-3 px-4 py-0 rounded bg-red-400/10 border-l-4 border-red-400 text-left"
      style="font-size: 13px">
 
-它擋住剛才那個攻擊，是因為那個攻擊者**正在冒充 client**。
-
-它從來不回答 —— **「這個 code，是不是你剛才那一次請求要來的那一個？」**
-
-</div>
-
-<div v-click="3" class="mt-6 text-center text-2xl font-bold text-amber-300">
-那如果攻擊者，根本不冒充 client 呢？
-</div>
-
----
-clicks: 3
----
-
-# ⑪ 等一下 —— 他手上的 code 哪來的？
-
-<div class="text-sm opacity-70 mb-3">
-confidential client 通常是 web app，<b>沒有 custom scheme 可以搶</b>。那他怎麼拿到？
-</div>
-
-<div v-click="1" class="px-4 py-2 rounded bg-amber-400/10 border-l-4 border-amber-400 text-left mb-4">
-
-回到剛才那句話 —— **只要 code 寫在網址上，就有路。**
+前一段看到的是 public —— native app 的 callback 被另一個 app 接走，
+**code 被偷 = token 被偷**。
 
 </div>
 
-<div v-click="2" class="grid grid-cols-2 gap-x-8 gap-y-2 text-left max-w-3xl mx-auto"
-     style="font-size: 13px">
+<div v-click="2" class="mt-5 text-center opacity-65" style="font-size: 13px">
+那 confidential 呢？它看起來有兩層保障：
+</div>
 
-<div class="opacity-80">· browser history</div>
-<div class="opacity-80">· Referer header</div>
-<div class="opacity-80">· server / proxy 的 access log</div>
-<div class="opacity-80">· 停錯站：<code>redirect_uri</code> 驗證不嚴、open redirector</div>
-<div class="opacity-80 col-span-2">· 攻擊者假扮 Authorization Server（mix-up）</div>
+<div class="grid grid-cols-2 gap-5 mt-3 text-left">
+
+<div v-click="3" class="rounded-lg border-2 border-slate-400/40 bg-slate-400/5 px-4 py-3">
+
+<div class="font-bold mb-1.5" style="font-size: 13.5px">① 它不出瀏覽器</div>
+<div class="opacity-70 leading-snug" style="font-size: 11.5px">
+
+callback 回的是自己網域的 https 網址，**沒有 custom scheme 可以搶**，
+作業系統也不會插手。
+
+</div>
+</div>
+
+<div v-click="4" class="rounded-lg border-2 border-slate-400/40 bg-slate-400/5 px-4 py-3">
+
+<div class="font-bold mb-1.5" style="font-size: 13.5px">② 它還有 <code>client_secret</code></div>
+<div class="opacity-70 leading-snug" style="font-size: 11.5px">
+
+就算 code 不知道怎麼被拿到了，**換 token 那一關還有 secret 擋著**。
+
+</div>
+</div>
 
 </div>
 
-<div v-click="3" class="mt-6 text-center">
-<div class="text-lg text-red-300 font-bold">這些沒有任何一種需要破 HTTPS。</div>
-<div class="text-sm opacity-60 mt-1">用哪一條不重要 —— 重點是他手上有了。</div>
+<div v-click="5" class="mt-7 text-center text-3xl font-bold text-amber-300">
+那它是不是就安全了？
 </div>
 
 ---
 clicks: 8
+---
+
+# ⑩ 那 code 怎麼會跑到他手上？
+
+<Leak :step="$clicks" class="mt-2" />
+
+<div class="text-center mx-auto max-w-4xl"
+     :style="{ minHeight: $clicks <= 5 ? '34px' : '0px', fontSize: '12.5px' }">
+
+<div v-if="$clicks === 1">
+攻擊者做的唯一一件事：把 authorization request 裡的 <code>redirect_uri</code> 換成自己的網域，<b class="text-red-300">後面接上看起來很像的那一段</b>。
+</div>
+
+<div v-if="$clicks === 2">
+Authorization Server 只做 pattern 比對 —— 它<b>真的以為</b>這是 <code>somesite.example</code> 底下的網址。
+</div>
+
+<div v-if="$clicks === 3">
+victim 點下去，在<b class="text-teal-300">真正的</b> Authorization Server 上，用<b class="text-teal-300">自己的帳號密碼</b>登入。這一步完全正常。
+</div>
+
+<div v-if="$clicks === 4">
+授權成功，Authorization Server 發出 code —— 接下來要把它送到 <code>redirect_uri</code> 指定的地方。
+</div>
+
+<div v-if="$clicks === 5">
+於是它<b class="text-red-300">自己把 code 送去了 attacker.example</b>。沒有人攔截，是它自己送的。
+</div>
+
+</div>
+
+<div v-click="6" class="mt-2 px-4 py-0 rounded bg-teal-400/10 border-l-4 border-teal-400 text-left"
+     style="font-size: 13px">
+
+而這一整條路，**每一段都是完好的 HTTPS** —— 沒有一段被攔截、沒有一張憑證是假的。
+
+</div>
+
+<div v-click="7" class="mt-2 px-4 py-0 rounded bg-red-400/10 border-l-4 border-red-400 text-left"
+     style="font-size: 13px">
+
+因為 HTTPS 保證的是「**這條線的另一端真的是 attacker.example、路上沒人偷聽**」——
+它從來不問「**你為什麼要把 code 送去那裡**」。
+**終點是 `redirect_uri` 說了算，而那一格被攻擊者填了。**
+
+</div>
+
+<div v-click="8" class="mt-2 px-4 py-0 rounded bg-gray-500/10 text-left" style="font-size: 11px">
+
+這一條路堵得掉 —— RFC 9700 §4.1.3 要求 Authorization Server 對 `redirect_uri` 做**完全比對**（*"MUST ensure that the two URIs are equal"*）。
+但只要 code 還是寫在網址上、還是靠瀏覽器轉交，就會有下一條路。所以真正該問的是 ——
+**code 落到別人手上的時候，它憑什麼還能用？**
+
+</div>
+
+---
+clicks: 9
 layout: full
 ---
 
-<div class="px-10 pt-4">
+<div class="px-10 pt-2">
 
-<div class="text-xl font-bold mb-1">⑫ 他不冒充 client —— 他借用那個誠實的 client</div>
+<div class="text-xl font-bold">⑪ 他不冒充 client —— 他借用那個誠實的 client</div>
 
-<Injection :step="$clicks" :h="244" />
+<div v-click="1" class="opacity-70" style="font-size: 11.5px">
+
+他手上已經有 code 了 —— 就是上一頁那條路拿到的。那第 ② 層呢？<b>沒有 <code>client_secret</code>，他換得到 token 嗎？</b>
+
+</div>
+
+<Injection :step="$clicks - 1" :h="238" />
 
 <div class="grid grid-cols-2 gap-5 mt-1">
 
-<div v-click="6">
+<div v-click="7">
 <CheckList
   :items="[
-    { label: 'client_secret', ok: true },
-    { label: 'client_id', ok: true },
-    { label: 'redirect_uri', ok: true },
+    { label: 'client_secret', ok: true, note: '誠實的 client 自己附上的' },
     { label: 'code 有效、未使用', ok: true },
   ]"
   title="Authorization Server 在 token endpoint 檢查什麼"
-  :verdict="$clicks >= 7 ? '清單<b>一樣長，卻又全綠了</b> —— 連新加的那一格都是綠的。' : ''"
+  :verdict="$clicks >= 8 ? '上一次 secret 那格是<b>紅的</b>，所以擋住了。這次它是<b>綠的</b> —— 因為附上它的，是那個誠實的 client。' : ''"
 />
 </div>
 
-<div v-click="8" class="self-center px-4 py-3 rounded bg-red-400/10 border-l-4 border-red-400">
+<div v-click="9" class="self-center px-4 py-3 rounded bg-red-400/10 border-l-4 border-red-400">
 
 **secret 從頭到尾都正確，但 token 給錯人了。**
 
 <div class="mt-2 opacity-60" style="font-size: 11px">
 
-RFC 9700 §4.5.2：*"...do not stop this attack, as the legitimate client authenticates at the token endpoint."*
+這個攻擊有名字：**authorization code injection**
 
 </div>
 
@@ -482,10 +489,10 @@ RFC 9700 §4.5.2：*"...do not stop this attack, as the legitimate client authen
 </div>
 
 ---
-clicks: 2
+clicks: 3
 ---
 
-# ⑬ 現在它有名字了：authorization code injection
+# ⑫ secret 全程正確，但它答的是另一題
 
 <div class="max-w-4xl mx-auto mt-3">
 <Axis
@@ -495,20 +502,53 @@ clicks: 2
 />
 </div>
 
-<div v-click="1" class="mt-5 px-4 py-3 rounded bg-gray-500/10 text-left max-w-4xl mx-auto"
-     style="font-size: 12px">
+<div v-click="1" class="mt-4 px-4 py-0 rounded bg-gray-500/10 text-left max-w-4xl mx-auto"
+     style="font-size: 11.5px">
 
-OAuth 2.1 §7.5.1 的 Historic note ——
-規格自己把這兩個攻擊分成**兩個詞**：
-
-*"Although PKCE was originally designed as a mechanism to protect native apps from authorization code
-**exfiltration** attacks, all kinds of OAuth clients, including web applications and other confidential
-clients, are susceptible to authorization code **injection** attacks..."*
+RFC 9700 §4.5.2 講得很直接 —— client authentication 擋不住這個攻擊：
+*"...do not stop this attack, as **the legitimate client authenticates at the token endpoint**."*
 
 </div>
 
-<div v-click="2" class="mt-4 text-center text-lg">
-「你是誰」這根軸已經滿分了。<b class="text-amber-300">而這個缺口，confidential client 也有。</b>
+<div v-click="2" class="mt-5 text-center text-xl">
+所以 confidential <b class="text-red-300">並沒有比較安全</b> ——<br>
+<span class="opacity-70" style="font-size: 15px">那層 <code>client_secret</code>，答的根本是另一題。</span>
+</div>
+
+<div v-click="3" class="mt-4 text-center opacity-60" style="font-size: 13px">
+缺的是一個能回答第二根軸的東西：<b>把 code 綁到這一次請求</b>。
+</div>
+
+---
+clicks: 3
+---
+
+# ⑬ 規格開的處方箋
+
+<div v-click="1" class="mt-4 px-5 py-3 rounded-lg border-2 border-slate-400/40 bg-slate-400/5
+     max-w-4xl mx-auto text-left" style="font-size: 13px">
+
+RFC 9700 §2.1.1：
+
+<div class="mt-2 flex flex-col gap-1.5">
+<div>· <i>"Public clients <b>MUST</b> use PKCE [RFC7636] to this end."</i></div>
+<div>· <i>"For confidential clients, the use of PKCE [RFC7636] is <b>RECOMMENDED</b>, as it provides strong protection against <b>misuse and injection of authorization codes</b>."</i></div>
+</div>
+
+</div>
+
+<div v-click="2" class="mt-5 text-center text-lg">
+兩種 client，指向同一個東西 —— 它叫 <b class="text-teal-300">PKCE</b>。<br>
+<span class="opacity-55" style="font-size: 14px">它怎麼做到的，等一下我們自己推。</span>
+</div>
+
+<div v-click="3" class="mt-6 px-5 py-0 rounded bg-amber-400/10 border-l-4 border-amber-400
+     max-w-4xl mx-auto text-left" style="font-size: 14px">
+
+可是等一下 —— 規格說 public client **必須**用 PKCE，也就是**必須**走 code exchange。
+那我們以前學的那個、**連 code 都不發、直接給 token** 的 implicit，
+<b class="text-amber-300">到底是幹嘛的？</b>
+
 </div>
 
 ---
