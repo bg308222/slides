@@ -212,58 +212,77 @@ clicks: 7
 </div>
 
 ---
-clicks: 2
+clicks: 8
 ---
 
-# ⑥ 但 code 並不在管線「裡面」
+# ⑥ 洞在第 5 步：終點不是網址，是一個 app
 
-<Pipe :step="$clicks" class="mt-3" />
+<Steal :step="$clicks" :h="276" class="mt-1" />
 
-<div v-click="2" class="mt-2 px-4 py-2.5 rounded bg-red-400/10 border-l-4 border-red-400 text-left"
+<div class="text-center mx-auto max-w-4xl mt-1"
+     :style="{ minHeight: $clicks <= 6 ? '40px' : '0px', fontSize: '13px' }">
+
+<div v-if="$clicks === 1">
+Authorization Server 回一個 302 —— <b class="text-red-300">code 就寫在這個網址上</b>，不是藏在內文裡。
+</div>
+
+<div v-if="$clicks === 2">
+網址沿著 HTTPS 送回 browser。到這裡為止，一切都還在管線裡。
+</div>
+
+<div v-if="$clicks === 3">
+但 <code>myapp://</code> <b>不是 https</b>，browser 處理不了 —— 它把<b class="text-red-300">整個網址原封不動交給作業系統</b>。
+</div>
+
+<div v-if="$clicks === 4">
+作業系統查註冊表：<code>myapp://</code> 是我們的 app 登記的 → code 正常落地。
+</div>
+
+<div v-if="$clicks === 5">
+問題在這裡 —— <b class="text-red-300">custom scheme 沒有所有權驗證</b>，惡意 app 也能登記同一個 <code>myapp://</code>。
+</div>
+
+<div v-if="$clicks === 6">
+同一個 callback 再來一次，作業系統這次把網址交給了它。<b class="text-red-300">code 落在惡意 app 手上。</b>
+</div>
+
+</div>
+
+<div v-click="7" class="mt-1 px-4 py-0 rounded bg-red-400/10 border-l-4 border-red-400 text-left"
      style="font-size: 13px">
 
-HTTPS 保護的是**管線裡面的內容**。但 code 是**寫在網址上**的 ——
-它跟著網址一起離開管線，落進網址列、瀏覽紀錄、伺服器 log。
+從頭到尾**沒有任何一步破了 HTTPS**。code 是自己走出管線的 ——
+因為它**寫在網址上**，而網址要交給誰，是**作業系統**說了算。
+
+</div>
+
+<div v-click="8" class="mt-1 px-4 py-0 rounded bg-gray-500/10 text-left leading-relaxed"
+     style="font-size: 10.5px">
+
+RFC 7636 §1 —— 規格舉的就是這個例子，這個攻擊有正式名字：**authorization code interception attack**
+<br>
+*"...within a communication path **not protected by Transport Layer Security (TLS)**, such as **inter-application communication within the client's operating system**."*
+<br>
+*"The attacker manages to register a malicious application on the client device and **registers a custom URI scheme that is also used by another application**."*
 
 </div>
 
 ---
-clicks: 6
+clicks: 5
 ---
 
-# ⑦ 洞在第 5 步
+# ⑦ 那他拿著這個 code，換得到 token 嗎？
 
-<div class="grid grid-cols-2 gap-5 mt-2">
-
-<div>
-
-<Trip :break-step5="$clicks >= 1" :evil="$clicks >= 2" />
-
+<div class="text-sm opacity-60 text-center mb-4">
+惡意 app 把偷來的 code 直接送去 token endpoint。Authorization Server 會擋下來嗎？
 </div>
 
-<div>
+<Fork :step="$clicks" />
 
-<div v-click="3">
-<CheckList
-  :items="[
-    { label: 'client_id', ok: true, note: '在 URL 上，本來就公開' },
-    { label: 'redirect_uri', ok: true, note: '他註冊了同一個 scheme，當然知道' },
-    { label: 'code 有效、未使用', ok: true },
-    { label: 'client authentication', ok: true, note: 'public client 不做' },
-  ]"
-  :reveal="$clicks >= 4 ? -1 : 0"
-  :verdict="$clicks >= 5 ? '<b>沒有任何一格是紅的。</b> code 被偷，就等於 token 被偷。' : ''"
-/>
-</div>
+<div v-click="5" class="mt-5 px-4 py-2.5 rounded bg-amber-400/10 border-l-4 border-amber-400 text-center">
 
-</div>
-
-</div>
-
-<div v-click="6" class="mt-4 px-4 py-2.5 rounded bg-amber-400/10 border-l-4 border-amber-400 text-center">
-
-問題不在於他偷到了 code，而在於**這張清單上沒有一格擋得住他**。
-<b class="text-amber-300">那要怎麼多一格？</b>
+同一個被偷走的 code，兩種應用的結局完全不同。
+<b class="text-amber-300">原來 —— client 其實有兩種。</b>
 
 </div>
 
@@ -279,13 +298,13 @@ client 其實有兩種
 clicks: 5
 ---
 
-# ⑧ 怎麼多一格：誰有能力持有 secret
+# ⑧ 這兩種 client，規格給了它們名字
 
 <div v-click="1" class="mt-2 px-4 py-2 rounded bg-indigo-400/10 border-l-4 border-indigo-400 text-left"
      style="font-size: 13px">
 
-要在清單上多一格，那一格必須檢查**只有真正的 client 才知道的東西** —— 那就是 `client_secret`。
-但不是每個 client 都**有能力**持有它。
+剛才那兩種應用，差別只有一件事 —— **有沒有能力持有 `client_secret`**。
+規格給了它們名字。
 
 </div>
 
@@ -400,7 +419,7 @@ confidential client 通常是 web app，<b>沒有 custom scheme 可以搶</b>。
 
 <div v-click="1" class="px-4 py-2 rounded bg-amber-400/10 border-l-4 border-amber-400 text-left mb-4">
 
-回到那句前提 —— **只要 code 寫在 URL 上，就有路。**
+回到剛才那句話 —— **只要 code 寫在網址上，就有路。**
 
 </div>
 
