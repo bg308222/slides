@@ -5,7 +5,7 @@ import { computed } from 'vue'
  * 5.3 重用同一個元件，只把 pkce 打開：同一張圖，不同結果。
  *
  * 兩條軌道刻意用完全相同的三欄座標（上 victim / 下 attacker）。
- * 最容易被誤解的是「攻擊者架了假 client」—— 他沒有，所以 Client 欄與 AS 欄
+ * 最容易被誤解的是「攻擊者架了假 client」—— 他沒有，所以 Client 欄與 Authorization Server 欄
  * 被一個垂直虛線框貫穿，明寫「同一個」。
  *
  * 顏色即身份：victim = teal，attacker = fuchsia。
@@ -40,13 +40,13 @@ const issued = computed(() => !props.pkce && props.step >= 7)
   <div :style="{ height: h + 'px' }">
   <svg viewBox="0 0 900 290" class="w-full h-full">
 
-    <!-- 貫穿兩軌的「同一個 client、同一個 AS」 -->
+    <!-- 貫穿兩軌的「同一個 client、同一個 Authorization Server」 -->
     <rect x="318" y="8" width="568" height="212" rx="10"
           fill="none" stroke="currentColor" stroke-opacity="0.3"
           stroke-width="2" stroke-dasharray="7 5" />
     <text x="602" y="238" text-anchor="middle" fill="currentColor"
           :opacity="rejected ? 0 : 0.55" style="font-size: 12px; transition: opacity .5s">
-      同一個 client、同一個 AS —— 攻擊者沒有架假網站，他就是去用你的網站
+      同一個 client、同一個 Authorization Server —— 攻擊者沒有架假網站，他就是去用我們的網站
     </text>
 
     <!-- ── 上軌：victim ── -->
@@ -55,7 +55,8 @@ const issued = computed(() => !props.pkce && props.step >= 7)
       <rect x="20" y="30" width="140" height="50" rx="8"
             :fill="V" fill-opacity="0.1"
             :stroke="V" stroke-opacity="0.7" stroke-width="2" />
-      <text x="90" y="60" text-anchor="middle" :fill="V" style="font-size: 13px">RO（victim）</text>
+      <text x="90" y="52" text-anchor="middle" :fill="V" style="font-size: 12px">Resource Owner</text>
+      <text x="90" y="70" text-anchor="middle" :fill="V" style="font-size: 11px">（victim）</text>
 
       <rect x="330" y="30" width="190" height="50" rx="8" fill="none"
             stroke="#818cf8" stroke-opacity="0.7" stroke-width="2" />
@@ -63,7 +64,8 @@ const issued = computed(() => !props.pkce && props.step >= 7)
 
       <rect x="700" y="30" width="180" height="50" rx="8" fill="none"
             stroke="#38bdf8" stroke-opacity="0.7" stroke-width="2" />
-      <text x="790" y="60" text-anchor="middle" fill="#7dd3fc" style="font-size: 13px">AS</text>
+      <text x="790" y="52" text-anchor="middle" fill="#7dd3fc" style="font-size: 12px">Authorization</text>
+      <text x="790" y="70" text-anchor="middle" fill="#7dd3fc" style="font-size: 12px">Server</text>
 
       <text v-if="step >= 2" x="20" y="96" :fill="V" opacity="0.8" style="font-size: 11px">
         victim 這一趟甚至可能成功登入了 —— 他毫無感覺
@@ -75,7 +77,8 @@ const issued = computed(() => !props.pkce && props.step >= 7)
       <text x="20" y="146" :fill="A" style="font-size: 12px">下軌 —— attacker 的那一趟</text>
       <rect x="20" y="156" width="140" height="50" rx="8" fill-opacity="0.1"
             :fill="A" :stroke="A" stroke-opacity="0.7" stroke-width="2" />
-      <text x="90" y="186" text-anchor="middle" :fill="A" style="font-size: 13px">RO（attacker）</text>
+      <text x="90" y="178" text-anchor="middle" :fill="A" style="font-size: 12px">Resource Owner</text>
+      <text x="90" y="196" text-anchor="middle" :fill="A" style="font-size: 11px">（attacker）</text>
 
       <rect x="330" y="156" width="190" height="50" rx="8" fill="none"
             stroke="#818cf8" stroke-opacity="0.7" stroke-width="2" />
@@ -85,7 +88,8 @@ const issued = computed(() => !props.pkce && props.step >= 7)
 
       <rect x="700" y="156" width="180" height="50" rx="8" fill="none"
             stroke="#38bdf8" stroke-opacity="0.7" stroke-width="2" />
-      <text x="790" y="186" text-anchor="middle" fill="#7dd3fc" style="font-size: 13px">AS</text>
+      <text x="790" y="178" text-anchor="middle" fill="#7dd3fc" style="font-size: 12px">Authorization</text>
+      <text x="790" y="196" text-anchor="middle" fill="#7dd3fc" style="font-size: 12px">Server</text>
     </g>
 
     <!-- 攻擊者手上（畫面外側的暫存格） -->
@@ -140,7 +144,7 @@ const issued = computed(() => !props.pkce && props.step >= 7)
       <text x="450" y="99" text-anchor="middle" :fill="A" style="font-size: 11px">verifier（attacker 的）</text>
     </g>
 
-    <!-- Client → AS 換 token -->
+    <!-- Client → Authorization Server 換 token -->
     <g :style="{ opacity: step >= 6 ? 1 : 0, transition: 'opacity .5s' }">
       <line x1="524" y1="182" x2="694" y2="182" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" />
       <polygon points="694,177 704,182 694,187" fill="currentColor" fill-opacity="0.5" />
@@ -159,7 +163,7 @@ const issued = computed(() => !props.pkce && props.step >= 7)
       </text>
     </g>
 
-    <!-- 結果 B：有 PKCE → 比對不上，AS 拒絕 -->
+    <!-- 結果 B：有 PKCE → 比對不上，Authorization Server 拒絕 -->
     <g :style="{ opacity: rejected ? 1 : 0, transition: 'opacity .6s' }">
       <rect x="20" y="224" width="860" height="62" rx="8"
             fill="#f871711a" stroke="#f87171" stroke-width="2" />
@@ -168,7 +172,7 @@ const issued = computed(() => !props.pkce && props.step >= 7)
       </text>
       <text x="450" y="270" text-anchor="middle" fill="#f87171" style="font-size: 14px"
             font-weight="bold">
-        invalid_grant —— AS 根本不會發出任何 token，顏色錯位不會發生
+        invalid_grant —— Authorization Server 不會發出任何 token，顏色錯位不會發生
       </text>
     </g>
   </svg>

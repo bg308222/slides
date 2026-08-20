@@ -184,42 +184,84 @@ for i in $(seq 1 60); do c=$(curl -s -m 3 -o /dev/null -w '%{http_code}' http://
   不指定才會把圖片內容回傳，你才真的「看到」畫面。
 - 導航後若要看動畫終態，先 `browser_evaluate` 睡個 2 秒再截圖。
 
-**用程式化檢測掃全部頁，用截圖看關鍵頁。**
-逐頁截圖很耗 context（31 頁 × 每頁數個 click ≈ 上百個狀態），不要硬掃。
-改成：`/print` 一次渲染所有頁（且所有 click 展開＝最壞情況），然後一次量完：
+**用程式化檢測掃全部狀態，用截圖看關鍵頁。**
+逐頁截圖很耗 context（30 頁 × 每頁數個 click ≈ 上百個狀態），不要硬掃。
+
+> **不要用 `/print` 當「所有 click 都展開」的最壞情況。** 實測過：`/print` 只讓
+> `v-click` 指令的元素顯示，但 `$clicks` 這個值在 print 模式下仍是 0 ——
+> 所以任何 `<MyComp :step="$clicks" />` 這種元件，在 print 頁上量到的都只是初始狀態。
+
+正確做法是驅動 Slidev 自己的 nav，一路 `next()` 走完全部狀態：
 
 ```js
-// browser_evaluate，導航到 /print 之後
+// browser_evaluate，在正常的 /1 頁面上執行
 async () => {
-  await new Promise(r => setTimeout(r, 3500));
-  const pages = [...document.querySelectorAll('.slidev-page')];
-  const overflow = [];
-  pages.forEach((pg, i) => {
+  const nav = window.__slidev__.nav;   // 屬性已 unwrap：nav.clicks / nav.currentPage 直接是值
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const out = [], seen = [], pagesSeen = new Set();
+  const measure = (tag, no) => {
+    const pg = document.querySelector('.slidev-page-' + no);   // 見下方警告
     const pb = pg.getBoundingClientRect();
-    let wb = 0, wr = 0, cb = '', cr = '';
+    let wb = 0, wr = 0, culprit = '';
     pg.querySelectorAll('*').forEach(el => {
       const b = el.getBoundingClientRect();
       if (!b.width || !b.height) return;
-      if (b.bottom - pb.bottom > wb) { wb = b.bottom - pb.bottom; cb = el.tagName + '.' + (el.className || '').toString().slice(0, 32); }
-      if (b.right - pb.right > wr) { wr = b.right - pb.right; cr = el.tagName + '.' + (el.className || '').toString().slice(0, 32); }
+      if (b.bottom - pb.bottom > wb) { wb = b.bottom - pb.bottom; culprit = el.tagName + '.' + (el.className || '').toString().slice(0, 26); }
+      if (b.right - pb.right > wr) wr = b.right - pb.right;
     });
-    if (wb > 3 || wr > 3) overflow.push({ page: i + 1, bottom: Math.round(wb), byB: cb, right: Math.round(wr), byR: cr });
-  });
-  // SVG 圖元是否超出自己的 viewBox（文字被切掉最常見）
-  const svgIssues = [];
-  document.querySelectorAll('.slidev-page svg').forEach(svg => {
-    const vb = (svg.getAttribute('viewBox') || '').split(/\s+/).map(Number);
-    if (vb.length !== 4) return;
-    svg.querySelectorAll('text,rect').forEach(el => {
-      let bb; try { bb = el.getBBox(); } catch { return; }
-      if (!bb.width) return;
-      if (bb.x + bb.width > vb[0] + vb[2] + 2 || bb.y + bb.height > vb[1] + vb[3] + 2 || bb.x < vb[0] - 2)
-        svgIssues.push({ tag: el.tagName, text: (el.textContent || '').trim().slice(0, 20) });
+    // SVG 圖元用「螢幕座標 vs svg 螢幕座標」比對。
+    // 不要用 getBBox 去比 viewBox：getBBox 不含祖先 <g transform>，
+    // 任何放在 translate(...) 裡的東西都會被誤報成超界。
+    const svgBad = [];
+    pg.querySelectorAll('svg').forEach(svg => {
+      const sb = svg.getBoundingClientRect();
+      svg.querySelectorAll('text,rect,line,polygon').forEach(el => {
+        const b = el.getBoundingClientRect();
+        if (!b.width || !b.height) return;
+        if (b.right > sb.right + 2 || b.bottom > sb.bottom + 2 || b.left < sb.left - 2 || b.top < sb.top - 2)
+          svgBad.push((el.textContent || el.tagName).trim().slice(0, 20));
+      });
     });
-  });
-  return JSON.stringify({ totalPages: pages.length, overflow, svgIssues }, null, 1);
+    if (wb > 3 || wr > 3 || svgBad.length) out.push({ at: tag, bottom: Math.round(wb), right: Math.round(wr), svgBad, culprit });
+  };
+  await nav.goFirst(); await sleep(220);
+  let guard = 0;
+  while (guard++ < 500) {
+    const no = nav.currentPage;
+    const tag = `p${no}c${nav.clicks}`;
+    seen.push(tag); measure(tag, no); pagesSeen.add(no);
+    if (!nav.hasNext) break;
+    await nav.next(); await sleep(75);
+  }
+  return JSON.stringify({
+    visited: seen.length, distinct: new Set(seen).size,
+    pagesMeasured: pagesSeen.size, problems: out,
+  }, null, 1);
 }
 ```
+
+**這個腳本有三個地方會靜默地讓你得到假的「零問題」，全部踩過：**
+
+| 陷阱 | 症狀 | 自我檢查 |
+|---|---|---|
+| `nav.clicks = c` | 唯讀，賦值靜靜失敗，每頁只量到同一個 click | `distinct` 必須等於 `visited` |
+| `querySelector('.slidev-page')` | 抓到 DOM 裡**第一個** slide（通常是封面），整份掃描其實都在量封面 | `pagesMeasured` 必須等於總頁數 |
+| `getBBox()` 比 viewBox | 不含祖先 `<g transform>`，任何被 translate 的圖元都誤報超界 | 改用上面的螢幕座標比對 |
+
+**每次都要把 `distinct` 和 `pagesMeasured` 一起回報**，數字對不上就代表這次掃描沒有意義。
+真實案例：修好第二個陷阱後，同一份簡報從「零問題」變成抓出 17 筆，其中一頁底部整塊內容被切掉。
+
+這三個陷阱都只在 console 留痕（例如
+`Set operation on key "clicks" failed: target is readonly`），
+所以掃完**順手看一次 `browser_console_messages`**。
+
+另外兩件關於 DOM 的事：
+
+- 用 `opacity: 0` 藏起來的元素**仍然在 DOM 裡**。如果某頁「不該有」某個東西，
+  除了看截圖，還要驗 `pg.innerText`；真的不該存在的就用 `v-if`，不要只調 opacity。
+- 反過來，**`innerText` 不能拿來判斷 `v-click` 元素此刻可不可見**——還沒輪到的 v-click
+  元素照樣在 DOM 裡、文字照樣抓得到。要確認「第幾個 click 才出現」，用截圖，
+  不要用文字比對（試過用 computed style 探針，抓到的往往是祖先容器，也不準）。
 
 然後**用截圖親眼看這些頁**（檢測抓不到「醜」和「語意錯」）：
 

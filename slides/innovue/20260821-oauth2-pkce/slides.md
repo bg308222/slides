@@ -14,13 +14,7 @@ mdc: true
 
 為什麼它存在，以及該由誰產
 
-<div class="pt-10 text-sm opacity-50">
-  全場只問一個問題 ——
-  <span class="text-indigo-300">這個機制回答的是「你是誰」</span>，
-  還是 <span class="text-amber-300">「這個 code 是不是你剛才要的那一個」</span>？
-</div>
-
-<div class="pt-8 text-xs opacity-35">andy.lin · 2026-08-21</div>
+<div class="pt-16 text-xs opacity-35">andy.lin · 2026-08-21</div>
 
 ---
 layout: center
@@ -33,40 +27,40 @@ layout: center
 <div>
 <div class="text-xs uppercase tracking-widest opacity-40 mb-1">第一段</div>
 
-**誰是 client**
+**把 OAuth 2.0 的名詞定住**
 
 <div class="text-sm opacity-65 mt-1 leading-relaxed">
-同一個字被用在兩個位置，所以那個問題一直吵不出答案。
+同一個字被不同人拿來指不同東西，後面的討論就會一直發散。
 </div>
 </div>
 
 <div>
 <div class="text-xs uppercase tracking-widest opacity-40 mb-1">第二段</div>
 
-**洞在哪**
+**純 OAuth 2.0 的洞在哪**
 
 <div class="text-sm opacity-65 mt-1 leading-relaxed">
-每一段都被 HTTPS 保護得好好的。那洞在哪？
+每一步都被 HTTPS 保護得好好的。那洞在哪？
 </div>
 </div>
 
 <div>
 <div class="text-xs uppercase tracking-widest opacity-40 mb-1">第三段</div>
 
-**client_secret 到底擋了什麼**
+**client 其實有兩種**
 
 <div class="text-sm opacity-65 mt-1 leading-relaxed">
-它擋住了。但那是副作用，不是它的職責。
+分清楚這兩種，<code>client_secret</code> 的角色才講得清楚。
 </div>
 </div>
 
 <div>
 <div class="text-xs uppercase tracking-widest opacity-40 mb-1">第四段</div>
 
-**一個合理但走錯方向的嘗試**
+**Implicit：一個合理但走錯方向的嘗試**
 
 <div class="text-sm opacity-65 mt-1 leading-relaxed">
-你們腦中已經有的那個 flow，當年是怎麼想的。
+我們腦中已經有的那個 flow，當年是怎麼想的。
 </div>
 </div>
 
@@ -83,7 +77,7 @@ layout: center
 </div>
 
 <div class="mt-8 text-sm opacity-45">
-不提 Resource Server、不談 XSS。今天只講「東西在誰手上、這一趟是不是同一趟」。
+不提 Resource Server、不談 XSS。今天只講「東西在誰手上、這一次是不是同一次」。
 </div>
 
 ---
@@ -92,7 +86,7 @@ layout: section
 
 # 第一段
 
-誰是 client
+把 OAuth 2.0 的名詞定住
 
 ---
 clicks: 7
@@ -100,37 +94,26 @@ clicks: 7
 
 # ① 我們已經知道的 OAuth
 
-<Roles :step="$clicks >= 7 ? 1 : 0" />
+<Roles :step="0" :flow="$clicks" class="mt-6" />
 
-<div class="absolute" style="left: 3.5rem; bottom: 2.2rem; right: 3.5rem">
-<div class="grid grid-cols-3 gap-x-5 gap-y-1 text-left" style="font-size: 12px">
-<div v-click="1" class="opacity-75">① user redirect 到 google</div>
-<div v-click="2" class="opacity-75">② user 登入 google</div>
-<div v-click="3" class="opacity-75">③ google callback 回 server</div>
-<div v-click="4" class="opacity-75">④ server 帶 code + client_secret 去換</div>
-<div v-click="5" class="opacity-75">⑤ google 回 token</div>
-<div v-click="6" class="opacity-75">⑥ 用 token access API</div>
-</div>
-
-<div v-click="7" class="mt-3 text-sm">
-這張圖<b class="text-teal-300">沒有錯</b>，你們每天在用。問題出在<b class="text-red-300">用詞</b>。
-</div>
+<div v-click="7" class="mt-8 text-sm opacity-75">
+這張圖<b class="text-teal-300">沒有錯</b>，我們每天在用。
 </div>
 
 ---
-clicks: 4
+clicks: 5
 ---
 
 # ② 翻譯成正式名詞
 
-<Roles :step="$clicks + 1" />
+<Roles :step="Math.min($clicks, 4)" />
 
 <div class="absolute" style="left: 3.5rem; bottom: 2rem; right: 3.5rem">
-<div v-click="3" class="text-sm">
+<div v-click="4" class="text-sm">
 最大的一次變化在<b class="text-violet-300">左邊那一格</b> ——
-一個字被拆成了<b>「人」</b>和<b>「車」</b>。
+一個字被拆成了<b>「人」</b>和<b>「他用的瀏覽器」</b>。
 </div>
-<div v-click="4" class="mt-2 px-3 py-2 rounded bg-indigo-400/10 border-l-4 border-indigo-400 text-sm">
+<div v-click="5" class="mt-2 px-3 py-2 rounded bg-indigo-400/10 border-l-4 border-indigo-400 text-sm">
 
 中間這個 **Client** 是 OAuth 定義的 client，**不是「應用的前端」**。
 
@@ -146,20 +129,20 @@ clicks: 7
 <Journey :step="$clicks" />
 
 <div class="absolute" style="left: 3.5rem; bottom: 1.8rem; right: 3.5rem">
-<div class="grid grid-cols-4 gap-x-4 gap-y-1 text-left" style="font-size: 11px">
-<div v-click="1" class="opacity-70">① Client 向 AS 申請 id / secret</div>
-<div v-click="2" class="opacity-70">② RO 發起登入</div>
-<div v-click="3" class="opacity-70">③ Client 叫車載 RO 去 AS</div>
-<div v-click="4" class="opacity-70">④ RO 在 AS 登入</div>
-<div v-click="5" class="opacity-70">⑤ 車載回來，車上多了 code</div>
-<div v-click="6" class="opacity-70">⑥ Client 自己去換 token</div>
-<div v-click="7" class="opacity-70">⑦ Client 拿 token 問資料</div>
+<div class="grid grid-cols-2 gap-x-8 gap-y-1 text-left" style="font-size: 11.5px">
+<div v-click="1" class="opacity-70">① Client 向 Authorization Server 申請 client_id / client_secret</div>
+<div v-click="2" class="opacity-70">② Resource Owner 發起登入</div>
+<div v-click="3" class="opacity-70">③ Client 將 Resource Owner 導向 Authorization Server</div>
+<div v-click="4" class="opacity-70">④ Resource Owner 在 Authorization Server 登入</div>
+<div v-click="5" class="opacity-70">⑤ 導回 Client，這次帶著 code</div>
+<div v-click="6" class="opacity-70">⑥ Client 自己拿 code 去換 token</div>
+<div v-click="7" class="opacity-70">⑦ Client 拿 token 問 user 資料</div>
 </div>
 
 <div v-click="7" class="mt-3 px-3 py-2 rounded bg-teal-400/10 border-l-4 border-teal-400 text-sm">
 
 **有 `client_id`、做 code exchange 的那一個，就是 client。**
-RO 就只是「我這個人」，不代表 browser，也不代表任何前端程式碼。
+Resource Owner 就只是「我這個人」，不代表 browser，也不代表任何前端程式碼。
 
 </div>
 </div>
@@ -170,11 +153,11 @@ class: text-center
 ---
 
 <div class="text-2xl opacity-80 leading-relaxed">
-車上載過 code，code 落地在 Client 門口。
+這趟流程裡，code 一路傳遞，最後落在 Client 手上。
 </div>
 
 <div class="text-3xl font-bold mt-6 text-amber-300">
-這一路上，有沒有哪一段<br>車上的東西會被別人拿走？
+這一路上，有沒有哪一段<br>code 會被別人拿走？
 </div>
 
 ---
@@ -183,10 +166,10 @@ layout: section
 
 # 第二段
 
-洞在哪
+純 OAuth 2.0 的洞在哪
 
 ---
-clicks: 3
+clicks: 1
 ---
 
 # ④ 先講兩個前提
@@ -211,14 +194,9 @@ clicks: 3
 
 </div>
 
-<Pipe :step="$clicks" class="mt-2" />
-
-<div v-click="1" class="mt-1 px-3 py-2 rounded bg-red-400/10 border-l-4 border-red-400 text-left"
-     style="font-size: 13px">
-
-但是 —— **code 不是躺在車廂裡的。它是寫在車身外面的牌子上。**
-車在管線裡跑時牌子當然安全；**車一到站，牌子還掛在那裡。**
-
+<div v-click="1" class="mt-8 text-center text-lg opacity-70">
+這兩件事今天都當成<b class="text-teal-300">成立</b>。<br>
+所以接下來要找的洞，<b>不能是「東西在傳輸中被攔截」</b>。
 </div>
 
 ---
@@ -234,10 +212,26 @@ clicks: 7
 </div>
 
 ---
+clicks: 2
+---
+
+# ⑥ 但 code 並不在管線「裡面」
+
+<Pipe :step="$clicks" class="mt-3" />
+
+<div v-click="2" class="mt-2 px-4 py-2.5 rounded bg-red-400/10 border-l-4 border-red-400 text-left"
+     style="font-size: 13px">
+
+HTTPS 保護的是**管線裡面的內容**。但 code 是**寫在網址上**的 ——
+它跟著網址一起離開管線，落進網址列、瀏覽紀錄、伺服器 log。
+
+</div>
+
+---
 clicks: 6
 ---
 
-# ⑥ 洞在第 5 步
+# ⑦ 洞在第 5 步
 
 <div class="grid grid-cols-2 gap-5 mt-2">
 
@@ -279,13 +273,13 @@ layout: section
 
 # 第三段
 
-client_secret 到底擋了什麼
+client 其實有兩種
 
 ---
 clicks: 5
 ---
 
-# ⑦ 怎麼多一格：誰有能力持有 secret
+# ⑧ 怎麼多一格：誰有能力持有 secret
 
 <div v-click="1" class="mt-2 px-4 py-2 rounded bg-indigo-400/10 border-l-4 border-indigo-400 text-left"
      style="font-size: 13px">
@@ -343,7 +337,7 @@ RFC 8252 §8.5：對 public native app 要求 shared secret 認證
 clicks: 4
 ---
 
-# ⑧ 同一張清單，只差一格
+# ⑨ 同一張清單，只差一格
 
 <div class="text-sm opacity-60 mb-3">
 假設攻擊者用某種途徑拿到了 code —— 哪一種先不重要。
@@ -371,7 +365,7 @@ clicks: 4
 clicks: 3
 ---
 
-# ⑨ 但那是副作用，不是它的職責
+# ⑩ 但那是副作用，不是它的職責
 
 <div class="max-w-2xl mx-auto mt-4">
 <Axis
@@ -398,7 +392,7 @@ clicks: 3
 clicks: 3
 ---
 
-# ⑩ 等一下 —— 他手上的 code 哪來的？
+# ⑪ 等一下 —— 他手上的 code 哪來的？
 
 <div class="text-sm opacity-70 mb-3">
 confidential client 通常是 web app，<b>沒有 custom scheme 可以搶</b>。那他怎麼拿到？
@@ -417,7 +411,7 @@ confidential client 通常是 web app，<b>沒有 custom scheme 可以搶</b>。
 <div class="opacity-80">· Referer header</div>
 <div class="opacity-80">· server / proxy 的 access log</div>
 <div class="opacity-80">· 停錯站：<code>redirect_uri</code> 驗證不嚴、open redirector</div>
-<div class="opacity-80 col-span-2">· 攻擊者假扮 AS（mix-up）</div>
+<div class="opacity-80 col-span-2">· 攻擊者假扮 Authorization Server（mix-up）</div>
 
 </div>
 
@@ -433,9 +427,9 @@ layout: full
 
 <div class="px-10 pt-4">
 
-<div class="text-xl font-bold mb-1">⑪ 他不冒充 client —— 他借用那個誠實的 client</div>
+<div class="text-xl font-bold mb-1">⑫ 他不冒充 client —— 他借用那個誠實的 client</div>
 
-<Injection :step="$clicks" :h="252" />
+<Injection :step="$clicks" :h="244" />
 
 <div class="grid grid-cols-2 gap-5 mt-1">
 
@@ -447,7 +441,7 @@ layout: full
     { label: 'redirect_uri', ok: true },
     { label: 'code 有效、未使用', ok: true },
   ]"
-  title="AS 在 token endpoint 檢查什麼"
+  title="Authorization Server 在 token endpoint 檢查什麼"
   :verdict="$clicks >= 7 ? '清單<b>一樣長，卻又全綠了</b> —— 連新加的那一格都是綠的。' : ''"
 />
 </div>
@@ -472,7 +466,7 @@ RFC 9700 §4.5.2：*"...do not stop this attack, as the legitimate client authen
 clicks: 2
 ---
 
-# ⑫ 現在它有名字了：authorization code injection
+# ⑬ 現在它有名字了：authorization code injection
 
 <div class="max-w-4xl mx-auto mt-3">
 <Axis
@@ -504,13 +498,13 @@ layout: section
 
 # 第四段
 
-一個合理但走錯方向的嘗試
+Implicit：一個合理但走錯方向的嘗試
 
 ---
 clicks: 3
 ---
 
-# ⑬ 回到 public client：它連第一根軸都沒有
+# ⑭ 回到 public client：它連第一根軸都沒有
 
 <div v-click="1" class="mt-6 px-5 py-4 rounded-lg border-2 border-slate-400/40 bg-slate-400/5
      max-w-3xl mx-auto text-left">
@@ -539,7 +533,7 @@ the authorization server **does not authenticate the client**."*
 clicks: 3
 ---
 
-# ⑭ 早期的答案：那就別發 code 了
+# ⑮ 早期的答案：那就別發 code 了
 
 <div v-click="1" class="mt-4 text-center text-2xl">
 既然那趟往返證明不了任何事 ——<br>
@@ -547,7 +541,7 @@ clicks: 3
 </div>
 
 <div v-click="2" class="mt-6 text-center text-lg opacity-70">
-這就是你們腦中的 <b>implicit flow</b>。
+這就是我們腦中的 <b>implicit flow</b>。
 </div>
 
 <div v-click="3" class="mt-8 px-5 py-3 rounded bg-gray-500/10 max-w-3xl mx-auto text-left"
@@ -565,29 +559,34 @@ RFC 6749 §1.3.2 給的理由，就是這麼務實：
 clicks: 3
 ---
 
-# ⑮ 代價：牌子上現在放的是「拿到就能用」的東西
+# ⑯ 代價：網址上現在放的是「拿到就能用」的東西
 
-<div class="mt-3">
-<Trip break-step5 :evil="$clicks >= 1" />
+<div class="mt-2">
+<Trip compact break-step5 :evil="$clicks >= 1" />
 </div>
 
-<div v-click="2" class="mt-3 px-4 py-2.5 rounded bg-red-400/10 border-l-4 border-red-400 text-left">
+<div class="grid grid-cols-2 gap-4 mt-3">
+
+<div v-click="2" class="px-4 py-2.5 rounded bg-red-400/10 border-l-4 border-red-400 text-left"
+     style="font-size: 13px">
 
 同一個惡意 app，原封不動搬回來。它照樣接得到 ——
 而**這次接到的不用再換**，連 token endpoint 那張檢查清單都不用經過。
 
 </div>
 
-<div v-click="3" class="mt-3 px-4 py-2.5 rounded bg-gray-500/10 text-left" style="font-size: 12px">
+<div v-click="3" class="px-4 py-2.5 rounded bg-gray-500/10 text-left" style="font-size: 11px">
 
-而 RFC 6749 §1.3.2 在 **2012 年就寫下了這句**：
+RFC 6749 §1.3.2 在 **2012 年就寫下了這句**：
 
 *"The access token may be exposed to the resource owner or **other applications with access to the
 resource owner's user-agent**."*
 
 <div class="mt-1.5 opacity-70">
 
-—— "other applications with access to the user-agent"，講的就是剛才那個 app。規格自己警告過，只是當年沒人當回事。
+—— 講的就是剛才那個 app。規格自己警告過，只是當年沒人當回事。
+
+</div>
 
 </div>
 
@@ -597,7 +596,7 @@ resource owner's user-agent**."*
 clicks: 3
 ---
 
-# ⑯ 方向錯了
+# ⑰ 方向錯了
 
 <div v-click="1" class="mt-6 px-5 py-4 rounded-lg border-2 border-teal-400/50 bg-teal-400/5
      max-w-3xl mx-auto text-left text-lg">
@@ -627,7 +626,7 @@ PKCE
 clicks: 2
 ---
 
-# ⑰ 我們手上有兩個缺口
+# ⑱ 我們手上有兩個缺口
 
 <div class="grid grid-cols-2 gap-5 mt-8 max-w-4xl mx-auto">
 
@@ -653,7 +652,7 @@ clicks: 2
 
 <div style="font-size: 12px" class="opacity-75 leading-relaxed">
 
-public client 沒有任何能預先跟 AS 共享的東西。
+public client 沒有任何能預先跟 Authorization Server 共享的東西。
 
 </div>
 
@@ -669,7 +668,7 @@ public client 沒有任何能預先跟 AS 共享的東西。
 clicks: 6
 ---
 
-# ⑱ 那我們自己來設計看看
+# ⑲ 那我們自己來設計看看
 
 <div class="max-w-3xl mx-auto text-left mt-4 flex flex-col gap-2.5">
 
@@ -690,7 +689,7 @@ clicks: 6
 </div>
 
 <div v-click="5" class="px-4 py-2 rounded bg-teal-400/10 border-l-4 border-teal-400" style="font-size: 14px">
-⑤ 換 token 時才交出<b>原值</b>；AS 重算一次，比對。
+⑤ 換 token 時才交出<b>原值</b>；Authorization Server 重算一次，比對。
 </div>
 
 </div>
@@ -711,7 +710,7 @@ layout: full
 
 <div class="px-10 pt-4">
 
-<div class="text-xl font-bold mb-1">⑲ 同一張圖，這次不一樣</div>
+<div class="text-xl font-bold mb-1">⑳ 同一張圖，這次不一樣</div>
 
 <Injection :step="$clicks" pkce />
 
@@ -725,7 +724,7 @@ layout: full
 
 <div class="px-4 py-2.5 rounded bg-teal-400/10 border-l-4 border-teal-400">
 
-**缺口二補上了** — 全程不需要事先跟 AS 共享任何秘密。
+**缺口二補上了** — 全程不需要事先跟 Authorization Server 共享任何秘密。
 
 </div>
 
@@ -737,7 +736,7 @@ layout: full
 clicks: 4
 ---
 
-# ⑳ 現在才貼上名字
+# ㉑ 現在才貼上名字
 
 <div v-click="1" class="text-center text-3xl font-bold mt-4">
 <span class="text-amber-300">P</span>roof
@@ -789,7 +788,7 @@ RFC 7636 §4.1／§4.2：verifier 為 43–128 字元的高熵亂數；
 clicks: 4
 ---
 
-# ㉑ 回到一開始那個問題
+# ㉒ 回到一開始那個問題
 
 <div class="text-center text-xl opacity-60 mt-4">
 「verifier 是 server 產還是 client 產？」
@@ -800,18 +799,18 @@ clicks: 4
 </div>
 
 <div v-click="1" class="mt-2 text-center text-xl">
-該問的是 —— <b>你的 OAuth client 是誰？</b>
+該問的是 —— <b>我們的 OAuth client 是誰？</b>
 </div>
 
-<div v-click="2" class="mt-6 px-5 py-3 rounded-lg border-2 border-teal-400/50 bg-teal-400/5
-     max-w-3xl mx-auto text-center text-lg">
+<div v-click="2" class="mt-5 px-5 py-2.5 rounded-lg border-2 border-teal-400/50 bg-teal-400/5
+     max-w-3xl mx-auto text-center text-base">
 
 誰發出 authorization request、誰保存 `code_verifier`、誰做 code exchange
 —— **必須是同一個。**
 
 </div>
 
-<div v-click="3" class="grid grid-cols-2 gap-4 mt-5 max-w-4xl mx-auto text-left" style="font-size: 13px">
+<div v-click="3" class="grid grid-cols-2 gap-4 mt-4 max-w-4xl mx-auto text-left" style="font-size: 12.5px">
 
 <div class="px-4 py-3 rounded-lg border border-indigo-400/40 bg-indigo-400/5">
 
@@ -833,7 +832,7 @@ backend 只提供自家 API，不參與 OAuth
 
 </div>
 
-<div v-click="4" class="mt-5 text-center text-lg text-red-300 font-bold">
+<div v-click="4" class="mt-4 text-center text-lg text-red-300 font-bold">
 不是「有沒有 server」，是「誰做 code exchange」。
 </div>
 
@@ -841,7 +840,7 @@ backend 只提供自家 API，不參與 OAuth
 clicks: 3
 ---
 
-# ㉒ 三份規格怎麼說
+# ㉓ 三份規格怎麼說
 
 <div class="max-w-4xl mx-auto text-left mt-3" style="font-size: 12.5px">
 
@@ -849,28 +848,28 @@ clicks: 3
 |---|---|
 | **RFC 7636**（2015） | 只談 public client |
 | **RFC 9700**（2025, BCP） | public **MUST**；confidential **RECOMMENDED** |
-| **OAuth 2.1** | **REQUIRED**，AS **MUST** 強制 —— 不再分 public / confidential |
+| **OAuth 2.1** | **REQUIRED**，Authorization Server **MUST** 強制 —— 不再分 public / confidential |
 
 </div>
 
-<div v-click="1" class="mt-4 px-4 py-2.5 rounded bg-gray-500/10 max-w-4xl mx-auto text-left"
-     style="font-size: 11.5px">
+<div v-click="1" class="mt-3 px-4 py-2 rounded bg-gray-500/10 max-w-4xl mx-auto text-left"
+     style="font-size: 11px">
 
 OAuth 2.1 §7.5.1 唯一的例外，要**同時**滿足兩個條件：
-① client 是 confidential　② AS 有合理保證它正確實作了 OIDC `nonce`。
+① client 是 confidential　② Authorization Server 有合理保證它正確實作了 OIDC `nonce`。
 而且即便如此 —— *"using and enforcing code_challenge and code_verifier is **still RECOMMENDED**."*
 
 </div>
 
-<div v-click="2" class="mt-3 px-4 py-2.5 rounded bg-amber-400/10 border-l-4 border-amber-400
-     max-w-4xl mx-auto text-left" style="font-size: 12px">
+<div v-click="2" class="mt-2.5 px-4 py-2 rounded bg-amber-400/10 border-l-4 border-amber-400
+     max-w-4xl mx-auto text-left" style="font-size: 11.5px">
 
-而且這個例外很弱：靠 client 自己驗 `nonce`，**AS 無從確認它真的做了**；
+而且這個例外很弱：靠 client 自己驗 `nonce`，**Authorization Server 無從確認它真的做了**；
 nonce 是**事後**才發現（token 已經發出去了），`code_challenge` 是**事前**擋掉。
 
 </div>
 
-<div v-click="3" class="mt-4 text-center text-lg">
+<div v-click="3" class="mt-3 text-center text-base">
 規格的態度已經從「public client 的補丁」<br>
 走到 <b class="text-teal-300">authorization code flow 的預設</b>。
 </div>
@@ -901,7 +900,7 @@ class: text-center
 </div>
 
 <div class="px-4 py-2.5 rounded bg-teal-400/10">
-所以 <b>verifier 由「你的 OAuth client」產</b> —— 發請求、存 verifier、做 exchange 是同一個。
+所以 <b>verifier 由「我們的 OAuth client」產</b> —— 發請求、存 verifier、做 exchange 是同一個。
 </div>
 
 </div>

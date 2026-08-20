@@ -13,7 +13,7 @@ withDefaults(defineProps<{
   title?: string
   verdict?: string
   verdictTone?: 'bad' | 'good'
-}>(), { reveal: -1, title: 'AS 在 token endpoint 檢查什麼', verdictTone: 'bad' })
+}>(), { reveal: -1, title: 'Authorization Server 在 token endpoint 檢查什麼', verdictTone: 'bad' })
 </script>
 
 <template>

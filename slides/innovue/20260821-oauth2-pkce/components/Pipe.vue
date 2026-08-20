@@ -44,7 +44,7 @@ withDefaults(defineProps<{ step?: number }>(), { step: 0 })
     <!-- 到站後的結論 -->
     <g :style="{ opacity: step >= 1 ? 1 : 0, transition: 'opacity .6s' }">
       <text x="852" y="186" text-anchor="end" fill="#fca5a5" style="font-size: 13px">
-        車出了管線，牌子還掛在那裡 —— code 寫在 URL 上
+        離開管線之後，code 仍然在網址上
       </text>
     </g>
 

@@ -2,15 +2,16 @@
 import { computed } from 'vue'
 /**
  * 1.3：在固定的三欄上實際跑一次 OAuth。
- * 重點不是流程本身（聽眾已經會了），是「車載著 RO 跑」這個載具意象 ——
- * RO 只在 AS 登入那一小段參與，其餘全是 Client 和 AS 在調度。
+ * 重點不是流程本身（聽眾已經會了），是 Resource Owner 透過瀏覽器移動這件事 ——
+ * 他只在 Authorization Server 登入那一小段參與，其餘都是 Client 與 Authorization Server 在往來。
+ * 車只是圖上的視覺隱喻，講稿與標籤一律用正式名詞。
  * 第 6 步之後車不再動，這件事必須看得出來。
  *
  * 三欄水平座標與 Roles.vue 對齊（視覺規則：全場不得改變）。
  */
 const props = withDefaults(defineProps<{ step?: number }>(), { step: 0 })
 
-/** 車的位置：RO 處 → AS → 回 Client → 從此不動 */
+/** 車的位置：Resource Owner 處 → Authorization Server → 回 Client → 從此不動 */
 const carX = computed(() => {
   if (props.step <= 2) return 40
   if (props.step <= 4) return 700
@@ -45,13 +46,13 @@ const hasCode = computed(() => props.step >= 5)
     <line x1="30" y1="180" x2="830" y2="180" stroke="currentColor" stroke-opacity="0.12"
           stroke-width="2" stroke-dasharray="6 6" />
 
-    <!-- 車（載著 RO） -->
+    <!-- 車：Resource Owner 移動時的載具（純視覺） -->
     <g :transform="`translate(${carX}, 0)`" style="transition: transform 1.1s cubic-bezier(.5,0,.3,1)"
        :style="{ opacity: step >= 3 ? 1 : (step >= 2 ? 1 : 0.35) }">
       <rect x="0" y="140" width="120" height="44" rx="10"
             fill="#fbbf241f" stroke="#fbbf24bf" stroke-width="2" />
       <text x="60" y="160" text-anchor="middle" fill="#fcd34d" style="font-size: 11px">🚗 browser</text>
-      <text x="60" y="176" text-anchor="middle" fill="#c4b5fd" style="font-size: 10px">載著 RO</text>
+      <text x="60" y="176" text-anchor="middle" fill="#c4b5fd" style="font-size: 10px">Resource Owner</text>
       <circle cx="28" cy="188" r="7" fill="none" stroke="#fbbf2499" stroke-width="2" />
       <circle cx="92" cy="188" r="7" fill="none" stroke="#fbbf2499" stroke-width="2" />
 
@@ -71,7 +72,7 @@ const hasCode = computed(() => props.step >= 5)
       </text>
     </g>
 
-    <!-- Client ⇄ AS：換 token、問資料 -->
+    <!-- Client ⇄ Authorization Server：換 token、問資料 -->
     <g :style="{ opacity: step >= 6 ? 1 : 0, transition: 'opacity .5s' }">
       <line x1="524" y1="58" x2="684" y2="58" stroke="#a5b4fc99" stroke-width="2" />
       <polygon points="684,53 694,58 684,63" fill="#a5b4fc99" />
