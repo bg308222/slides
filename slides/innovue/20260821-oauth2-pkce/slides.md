@@ -724,96 +724,28 @@ public client 沒有任何能預先跟 Authorization Server 共享的東西。
 </div>
 
 ---
-clicks: 6
----
-
-# ⑲ 那我們自己來設計看看
-
-<div class="max-w-3xl mx-auto text-left mt-4 flex flex-col gap-2.5">
-
-<div v-click="1" class="px-4 py-2 rounded bg-gray-500/10" style="font-size: 14px">
-① 「不需要預先登記」→ 那就 <b>當場產一個隨機值</b>。
-</div>
-
-<div v-click="2" class="px-4 py-2 rounded bg-gray-500/10" style="font-size: 14px">
-② 「綁到這一次請求」→ 那就在<b>發出 authorization request 的當下</b>把它交出去。
-</div>
-
-<div v-click="3" class="px-4 py-2 rounded bg-red-400/10 border-l-4 border-red-400" style="font-size: 14px">
-③ <b>但不能直接交</b> —— authorization request 走的是 URL，而 <b>URL 會離開管線</b>。直接交等於公開。
-</div>
-
-<div v-click="4" class="px-4 py-2 rounded bg-teal-400/10 border-l-4 border-teal-400" style="font-size: 14px">
-④ → 那就交一個<b>由它算出來、但反推不回去的值</b>。
-</div>
-
-<div v-click="5" class="px-4 py-2 rounded bg-teal-400/10 border-l-4 border-teal-400" style="font-size: 14px">
-⑤ 換 token 時才交出<b>原值</b>；Authorization Server 重算一次，比對。
-</div>
-
-</div>
-
-<div v-click="6" class="mt-4 px-4 py-2 rounded bg-gray-500/10 max-w-3xl mx-auto text-left"
-     style="font-size: 11px">
-
-第 ③ 步不是我編的：OAuth 2.1 §7.5.2 說明 `plain` 為何被禁 ——
-*"...the code verifier is transmitted in plaintext in the authorization request."*
-**不做這個 transform，得到的就是 `plain`。**
-
-</div>
-
----
-clicks: 7
-layout: full
----
-
-<div class="px-10 pt-4">
-
-<div class="text-xl font-bold mb-1">⑳ 同一張圖，這次不一樣</div>
-
-<Injection :step="$clicks" pkce />
-
-<div v-click="7" class="mt-2 grid grid-cols-2 gap-5">
-
-<div class="px-4 py-2.5 rounded bg-amber-400/10 border-l-4 border-amber-400">
-
-**缺口一補上了** — 原值每一趟現產，注入的 code 綁的是別趟的挑戰值。
-
-</div>
-
-<div class="px-4 py-2.5 rounded bg-teal-400/10 border-l-4 border-teal-400">
-
-**缺口二補上了** — 全程不需要事先跟 Authorization Server 共享任何秘密。
-
-</div>
-
-</div>
-
-</div>
-
----
 clicks: 4
 ---
 
-# ㉑ 現在才貼上名字
+# ⑲ PKCE
 
-<div v-click="1" class="text-center text-3xl font-bold mt-4">
+<div v-click="1" class="text-center text-3xl font-bold mt-3">
 <span class="text-amber-300">P</span>roof
 <span class="text-teal-300">K</span>ey
 for <span class="text-indigo-300">C</span>ode <span class="text-indigo-300">E</span>xchange
 </div>
 
-<div v-click="2" class="grid grid-cols-3 gap-4 mt-6 max-w-4xl mx-auto text-left" style="font-size: 12px">
+<div v-click="2" class="grid grid-cols-3 gap-4 mt-5 max-w-4xl mx-auto text-left" style="font-size: 12px">
 
 <div class="px-3 py-2 rounded bg-amber-400/10">
 
-**Proof** — 我們需要一個證明（第三段缺的）
+**Proof** — 一個證明（第三段缺的那個）
 
 </div>
 
 <div class="px-3 py-2 rounded bg-teal-400/10">
 
-**Key** — 但不能是預先登記的 secret，要臨時的（第四段缺的）
+**Key** — 不是預先登記的 secret，是**臨時的**（第四段缺的那個）
 
 </div>
 
@@ -825,21 +757,49 @@ for <span class="text-indigo-300">C</span>ode <span class="text-indigo-300">E</s
 
 </div>
 
-<div v-click="3" class="mt-6 max-w-3xl mx-auto text-left" style="font-size: 13px">
+<div v-click="3" class="mt-5 max-w-4xl mx-auto text-left" style="font-size: 12.5px">
 
-| 剛才推導出來的東西 | 它的正式名字 |
-|---|---|
-| 當場產的那個原值 | `code_verifier` |
-| 算出來、送得出去的那個 | `code_challenge` |
-| 算法 | `code_challenge_method` |
+| 參數 | 是什麼 | 誰產生、誰保管 |
+|---|---|---|
+| `code_verifier` | 每一次登入**現場產生**的高熵亂數 | client 產生，**留在自己身上，不上網址** |
+| `code_challenge` | `S256(code_verifier)`，**反推不回去** | 放進 authorization request 的網址送出 |
+| `code_challenge_method` | 用哪一種算法（`S256`） | 同上 |
 
 </div>
 
-<div v-click="4" class="mt-4 max-w-3xl mx-auto text-left opacity-65" style="font-size: 11px">
+<div v-click="4" class="mt-3 max-w-4xl mx-auto text-left opacity-65" style="font-size: 11px">
 
-RFC 7636 §4.1／§4.2：verifier 為 43–128 字元的高熵亂數；
-*"If the client is capable of using 'S256', it MUST use 'S256'."*
+換 token 時才交出 `code_verifier` 原值，Authorization Server 重算一次、跟當初收到的 `code_challenge` 比對。
+RFC 7636 §4.1／§4.2：verifier 為 43–128 字元的高熵亂數；*"If the client is capable of using 'S256', it MUST use 'S256'."*
 而 `plain` 在 **OAuth 2.1 §7.5.2 已是明文禁止**。
+
+</div>
+
+---
+clicks: 9
+layout: full
+---
+
+<div class="px-10 pt-2">
+
+<div class="text-xl font-bold">⑳ 這一次，誰持有什麼</div>
+
+<div class="opacity-70" style="font-size: 11.5px">
+
+同一個攻擊、同一張圖 —— 只是這次每一趟登入，client 都會現場產生一份自己的 <code>code_verifier</code>。
+
+</div>
+
+<Pkce :step="$clicks" :h="322" />
+
+<div v-click="9" class="mt-1 px-4 py-0 rounded bg-teal-400/10 border-l-4 border-teal-400 text-left"
+     style="font-size: 12.5px">
+
+攻擊者需要的是 `verifier_V`。而它**只存在上軌那一格 client 的記憶體裡**，
+從頭到尾**沒有上過網址** —— 上一段那些外流管道，一條都抄不到它。
+而且這一整套**沒有用到任何事先登記過的秘密**，所以沒有 `client_secret` 的 public client 一樣做得到 —— 兩個缺口一起補上。
+
+</div>
 
 </div>
 
@@ -847,7 +807,7 @@ RFC 7636 §4.1／§4.2：verifier 為 43–128 字元的高熵亂數；
 clicks: 4
 ---
 
-# ㉒ 回到一開始那個問題
+# ㉑ 回到一開始那個問題
 
 <div class="text-center text-xl opacity-60 mt-4">
 「verifier 是 server 產還是 client 產？」
@@ -899,7 +859,7 @@ backend 只提供自家 API，不參與 OAuth
 clicks: 3
 ---
 
-# ㉓ 三份規格怎麼說
+# ㉒ 三份規格怎麼說
 
 <div class="max-w-4xl mx-auto text-left mt-3" style="font-size: 12.5px">
 
