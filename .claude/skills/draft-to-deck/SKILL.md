@@ -1,6 +1,6 @@
 ---
 name: draft-to-deck
-description: 把條列式草稿編排成 Slidev 簡報。使用者提供草稿路徑（通常是某個簡報資料夾下的 draft.md、outline.md 或純文字筆記）並要求「編排」、「重寫」、「做成簡報」時使用。流程為：先讀懂草稿、提出釐清問題、再以自己的話重新編排成 slides.md，最後實測驗證。適用於月報、週報、專案回顧、技術分享等由條列筆記出發的簡報。
+description: 把條列式草稿編排成 Slidev 簡報。使用者提供草稿路徑（通常是某個簡報資料夾下的 draft.md、outline.md 或純文字筆記）並要求「編排」、「重寫」、「做成簡報」時使用。流程為：先讀懂草稿、提出釐清問題、再以自己的話重新編排成 slides.md，最後 run 起來用瀏覽器實際逐頁確認畫面。適用於月報、週報、專案回顧、技術分享等由條列筆記出發的簡報。
 ---
 
 # 草稿 → Slidev 簡報
@@ -132,30 +132,122 @@ mdc: true
 **注意**：`<div>` 內要寫 Markdown 語法（`**粗體**`、清單）時，
 div 標籤與內容之間必須留空行，否則不會被解析。
 
-### 5. 驗證
+### 5. 驗證：編譯 + 視覺，兩關都要過
 
-寫完必須實測，不要只靠肉眼檢查：
+**最重要的一件事：編譯通過不等於畫面是對的。**
+
+實測案例：一份 31 頁的簡報 `build` 回傳 exit=0、零錯誤、所有元件都進了 bundle，
+但實際打開來看，**兩張 SVG 圖整個爆掉**（渲染成一堆飽和模糊色塊，完全看不出是什麼）、
+一頁的內容掉出畫面底部、配色因為底色判斷錯誤而幾乎讀不出來。
+這些沒有任何一個會讓 build 失敗。
+
+所以流程是：先確認編譯過，**然後一定要真的看**。
+
+#### 5.1 編譯驗證
 
 ```bash
 # 確認新簡報被掃到
 just list
 
-# 啟動 dev server（背景執行，用不會自我匹配的 pattern 方便之後關閉）
+# 用 build 驗證整份編譯（比 dev server 可靠：任何一頁有問題都會讓 build 失敗）
+OUT=<scratchpad>/build-check
+bun node_modules/@slidev/cli/bin/slidev.mjs build <path>/slides.md --out "$OUT"
+echo "exit=$?"
+ls "$OUT/assets" | grep -c '^md-'   # md chunk 數 ≈ 頁數
+```
+
+> **不要用「逐頁 curl 看 HTTP 狀態」當驗證。**
+> Slidev 是 SPA，`/1` 到 `/999` 全都回 200 和同一份 shell，
+> 這個檢查永遠會過，是假訊號。
+
+#### 5.2 視覺驗證（必做）
+
+啟動 dev server，用 playwright MCP 實際看。
+這些工具是 deferred 的，先用 ToolSearch 載入：
+
+```
+ToolSearch("select:mcp__playwright__browser_navigate,mcp__playwright__browser_take_screenshot,mcp__playwright__browser_resize,mcp__playwright__browser_evaluate")
+```
+
+若回報瀏覽器沒安裝，先跑 `npx -y @playwright/mcp install-browser chrome-for-testing`。
+
+```bash
 nohup bun node_modules/@slidev/cli/bin/slidev.mjs <path>/slides.md --port 3095 > /tmp/deck.log 2>&1 & disown
+for i in $(seq 1 60); do c=$(curl -s -m 3 -o /dev/null -w '%{http_code}' http://localhost:3095/); [ "$c" = "200" ] && { echo ready; break; }; sleep 1; done
+```
 
-# 等到 200
-for i in $(seq 1 40); do c=$(curl -s -m 3 -o /dev/null -w '%{http_code}' http://localhost:3095/); [ "$c" = "200" ] && { echo ready; break; }; sleep 1; done
+**關鍵操作細節**（踩過才知道的）：
 
-# 確認 title 正確、整份編譯無錯
-curl -s http://localhost:3095/ | grep -o '<title>[^<]*</title>'
-curl -s -m 20 "http://localhost:3095/@slidev/slides" -o /tmp/d.js -w '%{http_code}\n'
-grep -ciE 'transform failed|Internal server error|Parse failure' /tmp/d.js
+- **路由是 `/{頁碼}?clicks={第幾個click}`**，不是 `/{頁碼}/{clicks}`——後者會回 404 頁。
+- **`browser_resize` 設 1440×810**，比例接近 Slidev 的 980×552.5 canvas。
+- **截圖不要指定 `filename`**。指定了只會存檔並回傳路徑，模型看不到內容；
+  不指定才會把圖片內容回傳，你才真的「看到」畫面。
+- 導航後若要看動畫終態，先 `browser_evaluate` 睡個 2 秒再截圖。
 
-# 逐頁掃錯
-for n in $(seq 1 20); do c=$(curl -s -m 10 -o /tmp/p.html -w '%{http_code}' "http://localhost:3095/$n"); echo "page $n -> $c"; done
+**用程式化檢測掃全部頁，用截圖看關鍵頁。**
+逐頁截圖很耗 context（31 頁 × 每頁數個 click ≈ 上百個狀態），不要硬掃。
+改成：`/print` 一次渲染所有頁（且所有 click 展開＝最壞情況），然後一次量完：
 
-# 關閉（pattern 加中括號避免殺到自己的 shell）
-pkill -f 'slide[v].mjs'
+```js
+// browser_evaluate，導航到 /print 之後
+async () => {
+  await new Promise(r => setTimeout(r, 3500));
+  const pages = [...document.querySelectorAll('.slidev-page')];
+  const overflow = [];
+  pages.forEach((pg, i) => {
+    const pb = pg.getBoundingClientRect();
+    let wb = 0, wr = 0, cb = '', cr = '';
+    pg.querySelectorAll('*').forEach(el => {
+      const b = el.getBoundingClientRect();
+      if (!b.width || !b.height) return;
+      if (b.bottom - pb.bottom > wb) { wb = b.bottom - pb.bottom; cb = el.tagName + '.' + (el.className || '').toString().slice(0, 32); }
+      if (b.right - pb.right > wr) { wr = b.right - pb.right; cr = el.tagName + '.' + (el.className || '').toString().slice(0, 32); }
+    });
+    if (wb > 3 || wr > 3) overflow.push({ page: i + 1, bottom: Math.round(wb), byB: cb, right: Math.round(wr), byR: cr });
+  });
+  // SVG 圖元是否超出自己的 viewBox（文字被切掉最常見）
+  const svgIssues = [];
+  document.querySelectorAll('.slidev-page svg').forEach(svg => {
+    const vb = (svg.getAttribute('viewBox') || '').split(/\s+/).map(Number);
+    if (vb.length !== 4) return;
+    svg.querySelectorAll('text,rect').forEach(el => {
+      let bb; try { bb = el.getBBox(); } catch { return; }
+      if (!bb.width) return;
+      if (bb.x + bb.width > vb[0] + vb[2] + 2 || bb.y + bb.height > vb[1] + vb[3] + 2 || bb.x < vb[0] - 2)
+        svgIssues.push({ tag: el.tagName, text: (el.textContent || '').trim().slice(0, 20) });
+    });
+  });
+  return JSON.stringify({ totalPages: pages.length, overflow, svgIssues }, null, 1);
+}
+```
+
+然後**用截圖親眼看這些頁**（檢測抓不到「醜」和「語意錯」）：
+
+- 每一張自訂 Vue／SVG 元件所在的頁 —— 這是最容易整個爆掉的地方
+- 有多欄、表格、或元件並排的頁
+- 動畫頁的**關鍵那一格**（不只看終態；中間那格才是重點所在）
+- 第一頁和最後一頁
+
+看的時候要問：字有沒有溢出容器、框有沒有對齊、留白是不是大到不自然、
+箭頭指的方向對不對、顏色在這個底色上讀不讀得出來。
+
+#### 5.3 已知地雷（都是實際踩過的）
+
+| 症狀 | 原因與修法 |
+|---|---|
+| SVG 渲染成飽和模糊色塊，圖完全看不出是什麼 | SVG **attribute** 裡不能用 `fill="rgb(45 212 191 / 0.06)"` 這種 CSS Color 4 語法。陷阱在於 `getComputedStyle` 查出來是**正確的** `rgba(...)`，會讓你以為沒問題，但光柵化是錯的。**一律用 8 位 hex**（`fill="#2dd4bf0f"`），或 hex + 獨立的 `fill-opacity`。 |
+| SVG 高度失控，把後面內容擠出畫面 | `style="max-height: 230px"` 對 SVG **不生效**（實測設 230 實際 311）。用外層 `<div :style="{height: N+'px'}">` 包住，SVG 給 `class="w-full h-full"`。 |
+| 文字很淡、幾乎讀不出來 | Slidev default theme **預設是淺色底**。若配色用了 `text-*-300` + `bg-*-400/10` 這類深色底設計，要在 frontmatter 加 `colorSchema: dark`。動手前先截一張圖確認底色。 |
+| SVG 內文字被切掉 | 文字超出 viewBox 右界。用 `text-anchor="end"` 靠右對齊，或縮短文字。 |
+| SVG 文字大小不對 | 用 inline `style="font-size: 12px"`，不要用 `font-size` presentation attribute（會被 theme 蓋掉）。 |
+| 某個 click 什麼也沒發生 | frontmatter 的 `clicks: N` 開多了，最後幾個是空轉。實際對照元件的 step 上限。 |
+
+#### 5.4 收尾
+
+```bash
+pgrep -f 'slidev.mjs' | grep -v $$ | xargs -r kill
+rm -rf .playwright-mcp   # 截圖產生的暫存目錄，不要留進 repo
+git status --short        # 確認沒有多餘檔案
 ```
 
 ### 6. 回報
@@ -165,7 +257,11 @@ pkill -f 'slide[v].mjs'
 - 頁數與段落結構（用表格列出各段落佔幾頁）
 - **主要的編排判斷**：哪些內容被獨立成頁、哪些被拆開、為什麼——這是使用者最需要 review 的部分
 - **哪些是你推論補上的**，明確標示以便核對
-- 驗證結果（頁數、編譯狀態）
+- 驗證結果：頁數、編譯狀態、**視覺檢查的涵蓋範圍**
+- **誠實說明你實際看了哪些頁、哪些只靠程式化檢測**。
+  上百個 click 狀態不可能全看，但要講清楚界線在哪，
+  不要讓「驗證過了」聽起來像「每一格都確認過了」。
+- 若視覺檢查時修了東西，**列出修了什麼**——這是使用者最想知道的部分
 - 開啟指令：`just dev <deck-path>`
 
 草稿檔（`draft.md`）保留不刪——Slidev 只吃 `slides.md`，草稿放著不影響任何事，
@@ -180,3 +276,4 @@ pkill -f 'slide[v].mjs'
 - 只有清單沒有因果，讀者不知道為什麼這樣做
 - 把內部代號直接丟出來卻沒問過觀眾是誰
 - 推論的內容混在事實裡不加說明
+- **只驗證編譯就回報「做好了」**——build 過了畫面照樣可能整個爆掉，沒看過就不算做完
