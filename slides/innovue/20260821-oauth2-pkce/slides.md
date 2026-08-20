@@ -641,7 +641,7 @@ RFC 9700 §4.5.2 講得很直接 —— client authentication 擋不住這個攻
 
 > This document therefore recommends instead **binding every authorization code to a certain client instance on a certain device (or in a certain user agent) in the context of a certain transaction** using one of the mechanisms described next.
 
-這句就是第二根軸的規格版說法，也直接鋪好了下一頁的 PKCE。
+這句就是第二題的規格版說法，也直接鋪好了下一頁的 PKCE。
 -->
 
 ---
@@ -710,7 +710,7 @@ Implicit：一個合理但走錯方向的嘗試
 clicks: 3
 ---
 
-# ⑭ 回到 public client：它連第一根軸都沒有
+# ⑭ 回到 public client：它連第一題都沒有
 
 <div v-click="1" class="mt-6 px-5 py-4 rounded-lg border-2 border-slate-400/40 bg-slate-400/5
      max-w-3xl mx-auto text-left">
