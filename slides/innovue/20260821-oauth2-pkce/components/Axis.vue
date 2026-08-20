@@ -15,7 +15,7 @@ withDefaults(defineProps<{
 <template>
   <div class="grid gap-3" :class="second ? 'grid-cols-2' : 'grid-cols-1 max-w-xl mx-auto'">
     <div class="rounded-lg border-2 border-indigo-400/45 bg-indigo-400/5 px-4 py-3">
-      <div class="uppercase tracking-widest opacity-40 mb-1.5" style="font-size: 10px">第一根軸</div>
+      <div class="uppercase tracking-widest opacity-40 mb-1.5" style="font-size: 10px">第一題</div>
       <div class="font-bold text-indigo-300 mb-2">你是誰？</div>
       <div class="opacity-70 leading-snug" style="font-size: 12px">
         來換 token 的，是不是我登記過的那個 client？
@@ -26,7 +26,7 @@ withDefaults(defineProps<{
 
     <div v-if="second"
          class="rounded-lg border-2 border-amber-400/50 bg-amber-400/5 px-4 py-3">
-      <div class="uppercase tracking-widest opacity-40 mb-1.5" style="font-size: 10px">第二根軸</div>
+      <div class="uppercase tracking-widest opacity-40 mb-1.5" style="font-size: 10px">第二題</div>
       <div class="font-bold text-amber-300 mb-2">這個 code 是不是你剛才要的那一個？</div>
       <div class="opacity-70 leading-snug" style="font-size: 12px">
         這一次 token 請求，跟當初那次 authorization 請求，是同一趟嗎？

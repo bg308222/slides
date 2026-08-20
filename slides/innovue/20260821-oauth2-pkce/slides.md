@@ -267,6 +267,26 @@ RFC 7636 §1 —— 規格舉的就是這個例子，這個攻擊有正式名字
 
 </div>
 
+<!--
+**投影片上兩句引文的出處：RFC 7636（2015-09）§1 Introduction，兩句都逐字無誤。**
+
+第一句在 §1 第 2 段（完整原文）：
+
+> In this attack, the attacker intercepts the authorization code returned from the authorization endpoint **within a communication path not protected by Transport Layer Security (TLS), such as inter-application communication within the client's operating system**.
+
+第二句其實在 Figure 1 之後的「pre-conditions」清單第 1 項（仍屬 §1）。完整原文比投影片多一句，那一句才是真正的關鍵：
+
+> 1. The attacker manages to register a malicious application on the client device and registers a custom URI scheme that is also used by another application. **The operating systems must allow a custom URI scheme to be registered by multiple applications.**
+
+同節還有一句可以直接拿來回答「這是不是紙上談兵」：
+
+> While this is a long list of pre-conditions, **the described attack has been observed in the wild** and has to be considered in OAuth 2.0 deployments.
+
+以及 §1 的白話版：
+
+> Note that it is possible for a malicious app to register itself as a handler for the custom scheme **in addition to** the legitimate OAuth 2.0 app. Once it does so, the malicious app is now able to intercept the authorization code in step (4).
+-->
+
 ---
 clicks: 5
 ---
@@ -285,6 +305,16 @@ clicks: 5
 <b class="text-amber-300">原來 —— client 其實有兩種。</b>
 
 </div>
+
+<!--
+**這一頁的分岔就是 RFC 9700（2025-01, BCP 240）§4.5 開頭的分岔，逐字原文：**
+
+> In the case that **the authorization code was created for a public client**, the attacker can send the authorization code to the token endpoint of the authorization server and thereby get an access token. This attack was described in Section 4.4.1.1 of [RFC6819].
+>
+> **For confidential clients**, or in some special situations, the attacker can execute an **authorization code injection attack**, as described in the following.
+
+也就是說：左邊那條（public 直接換到 token）RFC 歸給 RFC 6819 §4.4.1.1；右邊那條（confidential）RFC 才另闢 §4.5 講 injection。下一段整段就是在走右邊。
+-->
 
 ---
 layout: section
@@ -338,6 +368,24 @@ RFC 6749 §2.1 自己就講了這種分兩半的情況：*"A client may be imple
 
 </div>
 
+<!--
+**出處：RFC 6749（2012-10）§2.1 Client Types。投影片的引文逐字正確，但兩段都被截尾了，完整原文各多一個轉折：**
+
+> **confidential**
+> Clients capable of maintaining the confidentiality of their credentials (e.g., client implemented on a secure server with restricted access to the client credentials), **or capable of secure client authentication using other means**.
+>
+> **public**
+> Clients incapable of maintaining the confidentiality of their credentials (e.g., clients executing on the device used by the resource owner, such as an installed native application or a web browser-based application), **and incapable of secure client authentication via any other means**.
+
+被截掉的那兩句其實有用：它說明分類的依據不是「有沒有 secret」，而是「有沒有任何安全的 client authentication 手段」。RFC 緊接著還補一句：
+
+> The client type designation is **based on the authorization server's definition** of secure authentication and its acceptable exposure levels of client credentials. The authorization server **SHOULD NOT make assumptions** about the client type.
+
+第三段（distributed）完整原文，投影片省略號處補回：
+
+> A client may be implemented as a **distributed set of components, each with a different client type and security context** (e.g., a distributed client with both a confidential server-based component and a public browser-based component). If the authorization server does not provide support for such clients or does not provide guidance with regard to their registration, **the client SHOULD register each component as a separate client**.
+-->
+
 ---
 clicks: 5
 ---
@@ -384,6 +432,10 @@ callback 回的是自己網域的 https 網址，**沒有 custom scheme 可以�
 <div v-click="5" class="mt-7 text-center text-3xl font-bold text-amber-300">
 那它是不是就安全了？
 </div>
+
+<!--
+這一頁沒有直接引規格，兩層保障是從前面推來的。若被追問第 ① 層的規格依據：RFC 6749 §3.1.2.2 只要求 AS **SHOULD** 要求登記 scheme / authority / path，並沒有禁止 pattern；真正要求完全比對是 RFC 9700 §4.1.3（下一頁的註腳）。第 ② 層 `client_secret` 的依據是 §2.1 的 confidential 定義（上一頁）。
+-->
 
 ---
 clicks: 8
@@ -442,6 +494,31 @@ victim 點下去，在<b class="text-teal-300">真正的</b> Authorization Serve
 
 </div>
 
+<!--
+**這一頁完全照 RFC 9700 §4.1.1「Redirect URI Validation Attacks on Authorization Code Grant」的原例，網址沒有改編。逐字原文：**
+
+> Assume the redirection URL pattern `https://*.somesite.example/*` is registered for the client with the client ID s6BhdRkqt3. The intention is to allow any subdomain of somesite.example to be a valid redirection URI for the client, for example, `https://app1.somesite.example/redirect`. However, **a naive implementation on the authorization server might interpret the wildcard `*` as "any character" and not "any character valid for a domain name"**. The authorization server, therefore, might permit `https://attacker.example/.somesite.example` as a redirection URI, although attacker.example is a different domain potentially controlled by a malicious party.
+
+RFC 給的完整 authorization request：
+
+> GET /authorize?response\_type=code&client\_id=s6BhdRkqt3&state=9ad67f13&redirect\_uri=https%3A%2F%2Fattacker.example%2F.somesite.example HTTP/1.1
+> Host: server.somesite.example
+
+**§4.1.1 結尾自己接到下一段（⑪）：**
+
+> This attack will not work as easily for confidential clients, since the code exchange requires authentication with the legitimate client's secret. However, **the attacker can use the legitimate confidential client to redeem the code by performing an authorization code injection attack; see Section 4.5.**
+
+**「wildcard 真的能登記嗎」若被問到：** RFC 6749 §3.1.2.2 只說 AS *SHOULD* require 登記 scheme / authority / path，§3.1.2.3 說「**如果**登記的是完整 URI，才 MUST 用 simple string comparison」，所以規格層面本來就留了 partial 登記的縫。實務上 Auth0 明文支援 callback URL 的 wildcard（限最外層 subdomain、每個 URL 一個，且官方建議 production 不要用），Keycloak 的 Valid Redirect URIs 吃 `*`（其 Server Admin Guide 有一節 "Unspecific Redirect URIs" 專門警告）；Google、Okta、Entra ID 則只收完整 URI。
+
+**投影片註腳（v-click 8）的出處，RFC 9700 §4.1.3 逐字：**
+
+> This document therefore advises simplifying the required logic and configuration by using exact redirection URI matching. This means **the authorization server MUST ensure that the two URIs are equal**; see Section 6.2.1 of [RFC3986], Simple String Comparison, for details. **The only exception is native apps using a localhost URI**: In this case, the authorization server MUST allow variable port numbers as described in Section 7.3 of [RFC8252].
+
+**額外一張牌（§4.1.1 最後一段）：** 就算 AS 把 wildcard 處理「正確」也還是有洞。
+
+> It is important to note that redirection URI validation vulnerabilities **can also exist if the authorization server handles wildcards properly**. ... If an attacker manages to establish a host or subdomain in somesite.example, the attacker can impersonate the legitimate client. For example, this could be caused by a **subdomain takeover attack**, where an outdated CNAME record ... can be taken over by an attacker.
+-->
+
 ---
 clicks: 9
 layout: full
@@ -488,6 +565,40 @@ layout: full
 
 </div>
 
+<!--
+**出處：RFC 9700 §4.5 / §4.5.1。攻擊目的的定義（§4.5）逐字：**
+
+> In an authorization code injection attack, the attacker attempts to **inject a stolen authorization code into the attacker's own session with the client**. The aim is to **associate the attacker's session at the client with the victim's resources or identity**, thereby giving the attacker at least limited access to the victim's resources.
+
+**§4.5.1 的六個步驟（逐字，若被問「他具體怎麼做」就是這段）：**
+
+> 1. The attacker obtains an authorization code (see Attacker (A3) in Section 3). For the rest of the attack, only the capabilities of a web attacker (A1) are required.
+> 2. **From the attacker's device, the attacker starts a regular OAuth authorization process with the legitimate client.**
+> 3. In the response of the authorization server to the legitimate client, the attacker **replaces the newly created authorization code with the stolen authorization code**. Since **this response is passing through the attacker's device**, the attacker can use any tool that can intercept and manipulate the authorization response to this end. **The attacker does not need to control the network.**
+> 4. The legitimate client sends the code to the authorization server's token endpoint, along with the redirect\_uri and the client's client ID and client secret.
+> 5. The authorization server checks the client secret, whether the code was issued to the particular client, and whether the actual redirection URI matches the redirect\_uri parameter.
+> 6. All checks succeed and the authorization server issues access and other tokens to the client. **The attacker has now associated their session with the legitimate client with the victim's resources and/or identity.**
+
+**重點：他沒有架假網站，也沒有做假的 redirect。** 那個 302 本來就落在他自己的瀏覽器上，他只是在自己的裝置上改掉網址列裡的 `code`（`state` 保留自己那趟的，才過得了 client 的 state 檢查），再讓瀏覽器帶著 client 給他的 session cookie 送去**真的** callback。
+
+**RFC 也列了「除了繞過 client authentication 之外」的其他動機：**
+
+> * The attacker wants to access certain functions in this particular client. As an example, the attacker wants to **impersonate their victim in a certain app or on a certain website**.
+> * The authorization or resource servers are limited to certain networks that the attacker is unable to access directly.
+
+**講者要知道的細縫（§4.5.2）：** 如果這個 code 是靠**竄改 redirect\_uri**（上一頁那條路）拿到的，而 AS 有存下當初的完整 redirect URI 並在 token endpoint 比對，這次注入其實會被擋下：
+
+> In the attack scenario described in Section 4.5.1, the legitimate client would use the correct redirection URI it always uses for authorization requests. But this URI would not match the tampered redirection URI used by the attacker. So, **the authorization server would detect the attack and refuse to exchange the code**.
+
+RFC 緊接著說明為什麼實務上仍然守不住：
+
+> it has been observed that **providers very often ignore the redirect\_uri check requirement at this stage**, maybe because it doesn't seem to be security-critical from reading the specification.
+>
+> Other providers **just pattern match** the redirect\_uri parameter against the registered redirection URI pattern. ... So, **any attempt to inject an authorization code obtained using the client\_id of a legitimate client or by utilizing the legitimate client on another device will not be detected** in the respective deployments.
+
+若有人問「那 code 到底從哪來才注得進去」：任何**沒有動過 redirect\_uri** 的洩漏管道都行 —— Referer header（§4.2）、AS 或 proxy 的存取 log、瀏覽器歷史、同一個 client 在另一台裝置上的實例（§4.5.2 自己舉的）、以及第二段那個 custom scheme 劫持。這些 code 都是配著**正確的** redirect URI 發出來的，token endpoint 的比對完全無感。
+-->
+
 ---
 clicks: 3
 ---
@@ -516,8 +627,22 @@ RFC 9700 §4.5.2 講得很直接 —— client authentication 擋不住這個攻
 </div>
 
 <div v-click="3" class="mt-4 text-center opacity-60" style="font-size: 13px">
-缺的是一個能回答第二根軸的東西：<b>把 code 綁到這一次請求</b>。
+缺的是一個能回答第二題的東西：<b>把 code 綁到這一次請求</b>。
 </div>
+
+<!--
+**⚠ 投影片這句引文的主詞被省略號吃掉了，講者要知道完整版。RFC 9700 §4.5.2 原文是：**
+
+> **Asymmetric methods for client authentication** do not stop this attack, as the legitimate client authenticates at the token endpoint.
+
+原句講的是**非對稱**的 client authentication（private\_key\_jwt、mTLS 這類），不是單指 `client_secret`。這其實讓論點更強而不是更弱 —— 連公私鑰等級的 client 認證都擋不住，`client_secret` 當然更不行，因為理由完全一樣：**送出認證的是那個誠實的 client 本人**。若現場有人抓這一點，就這樣回。
+
+**同節的結論句（可直接引，這句才是完整的處方）：**
+
+> This document therefore recommends instead **binding every authorization code to a certain client instance on a certain device (or in a certain user agent) in the context of a certain transaction** using one of the mechanisms described next.
+
+這句就是第二根軸的規格版說法，也直接鋪好了下一頁的 PKCE。
+-->
 
 ---
 clicks: 3
@@ -550,6 +675,28 @@ RFC 9700 §2.1.1：
 <b class="text-amber-300">到底是幹嘛的？</b>
 
 </div>
+
+<!--
+**出處：RFC 9700 §2.1.1 Authorization Code Grant。完整的三個 bullet（投影片只放了前兩個）：**
+
+> Clients MUST prevent authorization code injection attacks (see Section 4.5) and misuse of authorization codes using one of the following options:
+>
+> * **Public clients MUST use PKCE** [RFC7636] to this end, as motivated in Section 4.5.3.1.
+> * For confidential clients, the use of PKCE [RFC7636] is **RECOMMENDED**, as it provides strong protection against misuse and injection of authorization codes as described in Section 4.5.3.1. Also, **as a side effect, it prevents CSRF** even in the presence of strong attackers as described in Section 4.7.1.
+> * With additional precautions, described in Section 4.5.3.2, **confidential OpenID Connect clients MAY use the nonce parameter** and the respective Claim in the ID Token instead.
+
+第三個 bullet 就是最後一段 ㉓ 要講的那個例外，這裡先埋著即可。
+
+**同節還有兩句對 AS 的硬性要求，可備用：**
+
+> **Authorization servers MUST support PKCE** [RFC7636].
+>
+> If a client sends a valid PKCE code\_challenge parameter in the authorization request, **the authorization server MUST enforce the correct usage of code\_verifier at the token endpoint**.
+
+以及那句常被引用的註記：
+
+> Note: **Although PKCE was designed as a mechanism to protect native apps, this advice applies to all kinds of OAuth clients, including web applications.**
+-->
 
 ---
 layout: section
@@ -588,6 +735,16 @@ the authorization server **does not authenticate the client**."*
 什麼都沒證明。它只是多一趟。
 </div>
 
+<!--
+**出處：RFC 6749 §1.3.2 Implicit。投影片引的那句逐字無誤，完整段落是：**
+
+> **When issuing an access token during the implicit grant flow, the authorization server does not authenticate the client.** In some cases, the client identity can be verified via the redirection URI used to deliver the access token to the client. The access token may be exposed to the resource owner or other applications with access to the resource owner's user-agent.
+
+中間那句「In some cases, the client identity can be verified via the redirection URI」值得留意 —— 2012 年 RFC 認為 redirect URI 可以當成一種弱的 client 識別，而第二段（⑩）已經示範了那個假設怎麼垮的。
+
+第三句就是 ⑯ 那頁要用的警告，同一段。
+-->
+
 ---
 clicks: 3
 ---
@@ -613,6 +770,20 @@ RFC 6749 §1.3.2 給的理由，就是這麼務實：
 *"**reduces the number of round trips** required to obtain an access token"*
 
 </div>
+
+<!--
+**出處：RFC 6749 §1.3.2。投影片引的兩個片段都逐字正確，但分屬兩段，講者可視情況補上完整句：**
+
+第一句（§1.3.2 開頭）：
+
+> The implicit grant is a **simplified authorization code flow optimized for clients implemented in a browser using a scripting language such as JavaScript**. In the implicit flow, instead of issuing the client an authorization code, **the client is issued an access token directly**.
+
+第二句（§1.3.2 最後一段）：
+
+> Implicit grants improve the responsiveness and efficiency of some clients (such as a client implemented as an in-browser application), **since it reduces the number of round trips required to obtain an access token**. **However, this convenience should be weighed against the security implications** of using implicit grants, such as those described in Sections 10.3 and 10.16, **especially when the authorization code grant type is available**.
+
+後半句「這個方便性應該跟安全代價權衡」也是 2012 年就寫下的 —— 跟 ⑯ 那頁「規格自己警告過」是同一段話的兩半。
+-->
 
 ---
 clicks: 3
@@ -651,6 +822,16 @@ resource owner's user-agent**."*
 
 </div>
 
+<!--
+**出處：RFC 6749 §1.3.2（2012-10）。投影片引的那句逐字無誤：**
+
+> **The access token may be exposed to the resource owner or other applications with access to the resource owner's user-agent.**
+
+它跟 ⑭ 那句（"does not authenticate the client"）是**同一段**的第一句與第三句，中間隔著 "In some cases, the client identity can be verified via the redirection URI..."。
+
+RFC 6749 §10.3 與 §10.16 是這句話指向的完整討論；若被追問細節可以指過去。RFC 9700 §2.1.2 則把它升級成規範性的 SHOULD NOT（下一頁）。
+-->
+
 ---
 clicks: 3
 ---
@@ -672,6 +853,26 @@ code 這一層**間接**是有價值的 —— 它讓「**拿到**」和「**能
 RFC 9700 §2.1.2：<i>"Clients SHOULD NOT use the implicit grant..."</i>　·　
 OAuth 2.1 §10.1 直接移除了它。
 </div>
+
+<!--
+**兩個引用的出處與完整原文：**
+
+RFC 9700 §2.1.2 Implicit Grant —— 投影片的省略號藏了一個 unless 條件，講者要知道：
+
+> In order to avoid these issues, **clients SHOULD NOT use the implicit grant** (response type token) or other response types issuing access tokens in the authorization response, **unless access token injection in the authorization response is prevented and the aforementioned token leakage vectors are mitigated**.
+
+同節給的替代方案，正好是這一頁的結論：
+
+> Clients **SHOULD instead use the response type code** (i.e., authorization code grant type) as specified in Section 2.1.1 ... This allows the authorization server to **detect replay attempts** by attackers and generally **reduces the attack surface since access tokens are not exposed in URLs**.
+
+OAuth 2.1（draft-ietf-oauth-v2-1-15, 2026-03-02）§10.1 Removal of the OAuth 2.0 Implicit grant：
+
+> The OAuth 2.0 Implicit grant is **omitted from OAuth 2.1** as it was deprecated in [RFC9700].
+>
+> The intent of removing the Implicit grant is to **no longer issue access tokens in the authorization response**, as such tokens are vulnerable to leakage and injection, and are unable to be sender-constrained to a client. This behavior was indicated by clients using the response\_type=token parameter. **This value for the response\_type parameter is no longer defined in OAuth 2.1.**
+
+注意措辭：OAuth 2.1 是「不再定義 response\_type=token」，等於移除；而 `response_type=id_token`（OIDC）不受影響，同節有明說。
+-->
 
 ---
 layout: section
@@ -775,6 +976,49 @@ RFC 7636 §4.1／§4.2：verifier 為 43–128 字元的高熵亂數；*"If the 
 
 </div>
 
+<!--
+**RFC 7636 §4.1 Client Creates a Code Verifier，逐字：**
+
+> code\_verifier = **high-entropy cryptographic random STRING** using the unreserved characters [A-Z] / [a-z] / [0-9] / "-" / "." / "\_" / "~" from Section 2.3 of [RFC3986], with a **minimum length of 43 characters and a maximum length of 128 characters**.
+>
+> NOTE: The code verifier SHOULD have enough entropy to make it impractical to guess the value. It is **RECOMMENDED that the output of a suitable random number generator be used to create a 32-octet sequence**. The octet sequence is then base64url-encoded to produce a 43-octet URL safe string.
+
+（§7.1 另有一句更硬的：*"The client SHOULD create a code\_verifier with a minimum of 256 bits of entropy."*）
+
+**投影片說的「換 token 時才交出原值，AS 重算一次比對」＝ RFC 7636 §4.6 Server Verifies code\_verifier before Returning the Tokens：**
+
+> Upon receipt of the request at the token endpoint, the server verifies it by **calculating the code challenge from the received "code\_verifier" and comparing it with the previously associated "code\_challenge"**, after first transforming it according to the "code\_challenge\_method" method specified by the client.
+>
+> If the "code\_challenge\_method" from Section 4.3 was "S256", the received "code\_verifier" is hashed by SHA-256, base64url-encoded, and then compared to the "code\_challenge", i.e.:
+>
+> `BASE64URL-ENCODE(SHA256(ASCII(code_verifier))) == code_challenge`
+>
+> If the values are equal, the token endpoint MUST continue processing as normal. **If the values are not equal, an error response indicating "invalid\_grant" as described in Section 5.2 of [RFC6749] MUST be returned.**
+
+**RFC 7636 §4.2 Client Creates the Code Challenge，逐字：**
+
+> plain　code\_challenge = code\_verifier
+> S256　code\_challenge = BASE64URL-ENCODE(SHA256(ASCII(code\_verifier)))
+>
+> **If the client is capable of using "S256", it MUST use "S256"**, as "S256" is Mandatory To Implement (MTI) on the server. Clients are permitted to use "plain" only if they cannot support "S256" for some technical reason and know via out-of-band configuration that the server supports "plain".
+
+**⚠ 投影片最後一句「plain 在 OAuth 2.1 §7.5.2 已是明文禁止」不成立，講者請勿照唸。**
+
+draft-ietf-oauth-v2-1-15 §4.1.1 對 plain 的措辭跟 RFC 7636 幾乎一樣，**仍然保留它當 fallback**：
+
+> If the client is capable of using S256, it MUST use S256, as S256 is Mandatory To Implement (MTI) on the server. **Clients are permitted to use plain only if they cannot support S256 for some technical reason**, for example constrained environments that do not have a hashing function available, and know via out-of-band configuration or via Authorization Server Metadata [RFC8414] that the server supports plain.
+
+（且 §4.1.1 明寫 `code_challenge_method` **defaults to plain if not present**，連預設值都還在。）
+
+現行文件裡對 plain 最強的措辭是 **RFC 7636 §7.2**，而且只到 SHOULD NOT：
+
+> Because of this, **"plain" SHOULD NOT be used** and exists only for compatibility with deployed implementations where the request path is already protected. **The "plain" method SHOULD NOT be used in new implementations**, unless they cannot support "S256" for some technical reason.
+>
+> **Clients MUST NOT downgrade to "plain" after trying the "S256" method.**
+
+安全的講法：「S256 是 MUST（只要做得到就必須用），plain 只剩 SHOULD NOT 等級的相容性存在，而且禁止從 S256 降級。」
+-->
+
 ---
 clicks: 9
 layout: full
@@ -802,6 +1046,30 @@ layout: full
 </div>
 
 </div>
+
+<!--
+**這一頁的機制就是 RFC 9700 §4.5.3.1 PKCE，逐字原文（兩句話剛好對應圖上的兩個缺口）：**
+
+> The PKCE mechanism specified in [RFC7636] can be used as a countermeasure (even though it was originally designed to secure native apps). **When the attacker attempts to inject an authorization code, the check of the code\_verifier fails: the client uses its correct verifier, but the code is associated with a code\_challenge that does not match this verifier.**
+>
+> PKCE not only protects against the authorization code injection attack but also **protects authorization codes created for public clients: PKCE ensures that an attacker cannot redeem a stolen authorization code at the token endpoint of the authorization server without knowledge of the code\_verifier.**
+
+第一句 = 缺口一（綁到這一次請求），第二句 = 缺口二（public client 沒有預先共享的秘密也擋得住）。圖上「client 手上是 attacker 那趟的 verifier，code 綁的是 victim 那趟的 challenge」講的就是第一句。
+
+**「網址上跑的只有 challenge、verifier 不上網址」的規格依據，RFC 9700 §2.1.1：**
+
+> When using PKCE, clients SHOULD use PKCE code challenge methods that **do not expose the PKCE verifier in the authorization request**. Otherwise, **attackers that can read the authorization request** (cf. Attacker (A4) in Section 3) **can break the security provided by PKCE**. **Currently, S256 is the only such method.**
+
+這句同時說明了為什麼投影片表格裡 method 只寫 `S256` —— 用 `plain` 的話 challenge 就等於 verifier，等於把 verifier 印在網址上，這一頁的論證會整個垮掉（RFC 7636 §7.2：*"the 'plain' method does not protect against the eavesdropping of the initial request"*）。
+
+**「每一趟都要換新的」的規格依據，RFC 9700 §2.1.1：**
+
+> In any case, the PKCE challenge or OpenID Connect nonce **MUST be transaction-specific and securely bound to the client and the user agent in which the transaction was started**.
+
+OAuth 2.1 §7.5.1.1 還多要求一句：
+
+> **If a transaction leads to an error, fresh values for code\_challenge or nonce MUST be chosen.**
+-->
 
 ---
 layout: center
@@ -870,3 +1138,33 @@ layout: center
 </div>
 
 </div>
+
+<!--
+**這一頁四份文件的書目資料與狀態（Q&A 備查，可用來回答「這是什麼等級的文件」）：**
+
+* **RFC 6749**，2012-10，Standards Track。*The OAuth 2.0 Authorization Framework* —— 本場 ②③⑧⑭⑮⑯ 的定義與引文都出自這裡。注意它已被 RFC 9700 **updates**，且會被 OAuth 2.1 **obsoletes**。
+* **RFC 7636**，2015-09，Standards Track。標題就是 *Proof Key for Code Exchange by OAuth **Public** Clients* —— 表格說它「只談 public client」的依據就是標題本身。
+* **RFC 9700**，2025-01，**Category: Best Current Practice，BCP 240**，**Updates: 6749, 6750, 6819**。標題 *Best Current Practice for OAuth 2.0 Security*。
+* **OAuth 2.1**：目前仍是 Internet-Draft，最新版 **draft-ietf-oauth-v2-1-15，2026-03-02**（Hardt / Parecki / Lodderstedt），**尚未成為 RFC**。若被問「定了嗎」，答：還沒，但它明說 *"This specification replaces and obsoletes the OAuth 2.0 Authorization Framework described in RFC 6749 and the Bearer Token Usage in RFC 6750."*
+
+**若被問「OAuth 2.1 到底怎麼規定 PKCE、有沒有例外」——出處是 draft-15 §7.5.1.1 Countermeasures**（§7.5.1 本身只是攻擊描述）。逐字原文：
+
+> To prevent injection of authorization codes into the client, **using code\_challenge and code\_verifier is REQUIRED for clients, and authorization servers MUST enforce their use**, unless **both** of the following criteria are met:
+>
+> * The client is a **confidential client**.
+> * In the specific deployment and the specific request, there is **reasonable assurance by the authorization server that the client implements the OpenID Connect nonce mechanism properly**.
+>
+> In this case, **using and enforcing code\_challenge and code\_verifier is still RECOMMENDED**.
+
+**這個例外其實很弱，而且不是自行推論，OAuth 2.1 原文就是這樣說的，可直接引：**
+
+> **Relying on the client to validate the OpenID Connect nonce parameter means the authorization server has no way to confirm that the client has actually protected itself** against authorization code injection attacks. If an attacker is able to inject an authorization code into a client, **the client would still exchange the injected authorization code and obtain tokens, and would only later reject the ID token** after validating the nonce and seeing that it doesn't match. In contrast, the authorization server enforcing the code\_challenge and code\_verifier parameters **provides a higher security outcome, since the authorization server is able to recognize the authorization code injection attack pre-emptively and avoid issuing any tokens in the first place**.
+
+**若要收一句「PKCE 已經從 public client 的補丁變成預設」，OAuth 2.1 §7.5.1.1 的 Historic note 可以直接引：**
+
+> Historic note: **Although PKCE was originally designed as a mechanism to protect native apps from authorization code exfiltration attacks, all kinds of OAuth clients, including web applications and other confidential clients, are susceptible to authorization code injection attacks**, which are solved by the code\_challenge and code\_verifier mechanism.
+
+RFC 9700 對 PKCE 的規定見 ⑬ 的 notes（§2.1.1）；另有一句常用的：*"Authorization servers MUST support PKCE [RFC7636]."*
+
+三份規格的態度變化，若要口頭總結：**RFC 7636（2015）只談 public client → RFC 9700（2025, BCP）public MUST／confidential RECOMMENDED → OAuth 2.1（draft）REQUIRED 且 AS MUST 強制，不再分 public / confidential。**
+-->
