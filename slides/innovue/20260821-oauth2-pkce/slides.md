@@ -795,8 +795,8 @@ layout: full
 <div v-click="9" class="mt-1 px-4 py-0 rounded bg-teal-400/10 border-l-4 border-teal-400 text-left"
      style="font-size: 12.5px">
 
-攻擊者需要的是 `verifier_V`。而它**只存在上軌那一格 client 的記憶體裡**，
-從頭到尾**沒有上過網址** —— 上一段那些外流管道，一條都抄不到它。
+攻擊者需要的是 `verifier_V`。而它**只存在上軌那一格 client 的記憶體裡**，從頭到尾沒有離開過 ——
+網址上跑的只有 `challenge`（反推不回去）和 `code`，**就算兩個都被看光，也湊不出 `verifier_V`**。
 而且這一整套**沒有用到任何事先登記過的秘密**，所以沒有 `client_secret` 的 public client 一樣做得到 —— 兩個缺口一起補上。
 
 </div>
@@ -804,122 +804,69 @@ layout: full
 </div>
 
 ---
-clicks: 4
----
-
-# ㉑ 回到一開始那個問題
-
-<div class="text-center text-xl opacity-60 mt-4">
-「verifier 是 server 產還是 client 產？」
-</div>
-
-<div v-click="1" class="mt-5 text-center text-3xl font-bold text-amber-300">
-這個問題問錯了。
-</div>
-
-<div v-click="1" class="mt-2 text-center text-xl">
-該問的是 —— <b>我們的 OAuth client 是誰？</b>
-</div>
-
-<div v-click="2" class="mt-5 px-5 py-2.5 rounded-lg border-2 border-teal-400/50 bg-teal-400/5
-     max-w-3xl mx-auto text-center text-base">
-
-誰發出 authorization request、誰保存 `code_verifier`、誰做 code exchange
-—— **必須是同一個。**
-
-</div>
-
-<div v-click="3" class="grid grid-cols-2 gap-4 mt-4 max-w-4xl mx-auto text-left" style="font-size: 12.5px">
-
-<div class="px-4 py-3 rounded-lg border border-indigo-400/40 bg-indigo-400/5">
-
-**BFF / 傳統 web app**
-
-backend 持有 `client_id`、做 exchange
-→ **backend 就是 Client** → backend 產
-
-</div>
-
-<div class="px-4 py-3 rounded-lg border border-indigo-400/40 bg-indigo-400/5">
-
-**SPA / native app 直接當 client**
-
-backend 只提供自家 API，不參與 OAuth
-→ **app 本身就是 Client** → app 產
-
-</div>
-
-</div>
-
-<div v-click="4" class="mt-4 text-center text-lg text-red-300 font-bold">
-不是「有沒有 server」，是「誰做 code exchange」。
-</div>
-
----
-clicks: 3
----
-
-# ㉒ 三份規格怎麼說
-
-<div class="max-w-4xl mx-auto text-left mt-3" style="font-size: 12.5px">
-
-| | 對 PKCE 的要求 |
-|---|---|
-| **RFC 7636**（2015） | 只談 public client |
-| **RFC 9700**（2025, BCP） | public **MUST**；confidential **RECOMMENDED** |
-| **OAuth 2.1** | **REQUIRED**，Authorization Server **MUST** 強制 —— 不再分 public / confidential |
-
-</div>
-
-<div v-click="1" class="mt-3 px-4 py-2 rounded bg-gray-500/10 max-w-4xl mx-auto text-left"
-     style="font-size: 11px">
-
-OAuth 2.1 §7.5.1 唯一的例外，要**同時**滿足兩個條件：
-① client 是 confidential　② Authorization Server 有合理保證它正確實作了 OIDC `nonce`。
-而且即便如此 —— *"using and enforcing code_challenge and code_verifier is **still RECOMMENDED**."*
-
-</div>
-
-<div v-click="2" class="mt-2.5 px-4 py-2 rounded bg-amber-400/10 border-l-4 border-amber-400
-     max-w-4xl mx-auto text-left" style="font-size: 11.5px">
-
-而且這個例外很弱：靠 client 自己驗 `nonce`，**Authorization Server 無從確認它真的做了**；
-nonce 是**事後**才發現（token 已經發出去了），`code_challenge` 是**事前**擋掉。
-
-</div>
-
-<div v-click="3" class="mt-3 text-center text-base">
-規格的態度已經從「public client 的補丁」<br>
-走到 <b class="text-teal-300">authorization code flow 的預設</b>。
-</div>
-
----
 layout: center
 class: text-center
 ---
 
-# 收束
+# 回顧
 
-<div class="max-w-3xl mx-auto text-left mt-6 flex flex-col gap-3" style="font-size: 14px">
+<div class="max-w-4xl mx-auto text-left mt-6 flex flex-col gap-2.5" style="font-size: 14px">
 
 <div class="px-4 py-2.5 rounded bg-gray-500/10">
-<b>誰是 client</b> —— 有 <code>client_id</code>、做 code exchange 的那一個。不是「有沒有 server」。
+<b class="text-indigo-300">①</b>　OAuth 主要就<b>三個角色</b> —— Resource Owner、Client、Authorization Server ——
+<b>加一個 browser</b> 當載具。
 </div>
 
 <div class="px-4 py-2.5 rounded bg-gray-500/10">
-<b>code 為什麼會漏</b> —— 它寫在 URL 上，而 URL 會離開 HTTPS 管線。
+<b class="text-indigo-300">②</b>　code 不論在 <b>native app</b> 還是 <b>web</b>，都有辦法被弄走。
 </div>
 
-<div class="px-4 py-2.5 rounded bg-indigo-400/10">
-<b><code>client_secret</code></b> 回答的是「<b>你是誰</b>」。擋住 exfiltration 是副作用。
+<div class="px-4 py-2.5 rounded bg-red-400/10">
+<b class="text-red-300">③</b>　<b>public client</b>：code 被偷就<b>沒救了</b> —— 換 token 那一關沒有東西擋得住。
 </div>
 
 <div class="px-4 py-2.5 rounded bg-amber-400/10">
-<b>PKCE</b> 回答的是「<b>這個 code 是不是你剛才要的那一個</b>」。injection 只有它擋得住。
+<b class="text-amber-300">④</b>　<b>confidential client</b>：即使有 <code>client_secret</code> 保護，
+那個 code <b>照樣能被拿去換到 token</b>。
 </div>
 
 <div class="px-4 py-2.5 rounded bg-teal-400/10">
-所以 <b>verifier 由「我們的 OAuth client」產</b> —— 發請求、存 verifier、做 exchange 是同一個。
+<b class="text-teal-300">⑤</b>　只有 <b>PKCE</b> 確保了 ——
+<b>發起 authorization request 的人</b>，和<b>來換 token 的人</b>，是<b>同一個</b>。
+</div>
+
+</div>
+
+---
+layout: center
+---
+
+# 參考資料
+
+<div class="max-w-3xl mx-auto text-left mt-6 flex flex-col gap-3" style="font-size: 14px">
+
+<div>
+
+[RFC 6749 — The OAuth 2.0 Authorization Framework](https://www.rfc-editor.org/rfc/rfc6749)
+
+</div>
+
+<div>
+
+[RFC 7636 — Proof Key for Code Exchange by OAuth Public Clients](https://www.rfc-editor.org/rfc/rfc7636)
+
+</div>
+
+<div>
+
+[RFC 9700 — Best Current Practice for OAuth 2.0 Security](https://www.rfc-editor.org/rfc/rfc9700)
+
+</div>
+
+<div>
+
+[The OAuth 2.1 Authorization Framework（draft-ietf-oauth-v2-1）](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1)
+
 </div>
 
 </div>

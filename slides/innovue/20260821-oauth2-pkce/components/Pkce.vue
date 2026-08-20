@@ -8,7 +8,7 @@
  *   下軌 client  →  verifier_A（attacker 那一趟是**另一份**）
  *   攻擊者       →  只有 code_V，沒有任何 verifier
  *
- * 中間那條虛線帶是「走網址」的區間 —— 會外流的東西只會出現在那裡。
+ * 中間那條虛線帶是「走網址」的區間 —— 只有會出現在網址上的東西才進得去。
  * verifier 從頭到尾不進那條帶子，這就是整頁的結論。
  *
  * step: 1 client 產 verifier_V / 2 challenge_V 上網址 / 3 AS 記下並發 code_V
@@ -103,7 +103,7 @@ const R = '#f87171'
             stroke="currentColor" stroke-opacity="0.22" stroke-width="2" stroke-dasharray="6 5" />
     </g>
     <text x="595" y="12" text-anchor="middle" fill="currentColor" opacity="0.45"
-          style="font-size: 9px">走網址 —— 會外流</text>
+          style="font-size: 9px">走網址的只有這些</text>
 
     <!-- 上軌：challenge 出去、code 回來 -->
     <g :style="{ opacity: step >= 2 ? 1 : 0, transition: 'opacity .5s' }">
