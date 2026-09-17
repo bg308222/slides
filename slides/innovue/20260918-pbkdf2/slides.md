@@ -16,7 +16,7 @@ mdc: true
 <span class="text-teal-300 font-bold">P</span>assword-<span class="text-teal-300 font-bold">B</span>ased<span class="opacity-40 mx-2">·</span><span class="text-teal-300 font-bold">K</span>ey <span class="text-teal-300 font-bold">D</span>erivation <span class="text-teal-300 font-bold">F</span>unction<span class="opacity-40 mx-2">·</span><span class="text-teal-300 font-bold">2</span>
 </div>
 
-<div class="pt-16 text-xs opacity-35">andy.lin · 2026-09-11</div>
+<div class="pt-16 text-xs opacity-35">andy.lin · 2026-09-18</div>
 
 <!--
 封面上這五個字先掛著就好，不要解釋。
