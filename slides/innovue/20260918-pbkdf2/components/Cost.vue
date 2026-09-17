@@ -102,19 +102,19 @@ const rowBg = (i: number) => {
       class="flex items-baseline gap-3"
       :style="{ opacity: step >= 5 ? 1 : 0, transition: 'opacity 380ms ease' }"
     >
-      <span class="text-teal-300 shrink-0" style="font-size: 12px; width: 62px">橫著看</span>
+      <!-- <span class="text-teal-300 shrink-0" style="font-size: 12px; width: 62px">橫著看</span>
       <span style="font-size: 14px">
         同一個單價，被乘了 <b class="text-teal-300">約 150 萬倍</b>。這就是 iterations 買到的東西。
-      </span>
+      </span> -->
     </div>
     <div
       class="flex items-baseline gap-3"
       :style="{ opacity: step >= 6 ? 1 : 0, transition: 'opacity 380ms ease' }"
     >
-      <span class="text-red-300 shrink-0" style="font-size: 12px; width: 62px">直著看</span>
+      <!-- <span class="text-red-300 shrink-0" style="font-size: 12px; width: 62px">直著看</span>
       <span style="font-size: 14px">
         六碼數字那格，乘完 <b class="text-red-300">也只有一分鐘</b>。它只是把每一格乘上同一個常數。
-      </span>
+      </span> -->
     </div>
   </div>
 
