@@ -4,6 +4,7 @@
   "type": "module",
   "devDependencies": {
     "@slidev/cli": "^52.18.0",
-    "@slidev/theme-default": "^0.25.0"
+    "@slidev/theme-default": "^0.25.0",
+    "slidev-theme-neversink": "^0.4.1"
   }
 }
