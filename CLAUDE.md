@@ -63,6 +63,8 @@ just new report/20260801  # 新建簡報骨架
 ## Skills
 
 - `technical-report-draft`（`.claude/skills/`）：與已有初步切法的作者多輪推敲技術敘事、技術正確性與可視化的漸進推導，最後交付 `draft.md`。
+- `monthly-report-draft`（`.claude/skills/`）：把使用者提供的本月多個工作項目整理成月報 `draft.md`，
+  放在 `slides/innovue/YYYYMM99-monthly-report/`（末兩碼固定 `99`）。聚焦本月做了什麼、狀態與決策理由，不做技術推導。
 - `draft-to-deck`（`.claude/skills/`）：把已定稿的條列式草稿編排成 Slidev 簡報。
   給定草稿路徑時使用——會先讀懂草稿、提問釐清，再重新編排成 `slides.md`，
   最後 run 起來用瀏覽器逐頁確認畫面（編譯過不代表畫面對）。
