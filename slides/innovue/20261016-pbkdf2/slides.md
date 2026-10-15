@@ -16,7 +16,7 @@ mdc: true
 <span class="text-teal-300 font-bold">P</span>assword-<span class="text-teal-300 font-bold">B</span>ased<span class="opacity-40 mx-2">·</span><span class="text-teal-300 font-bold">K</span>ey <span class="text-teal-300 font-bold">D</span>erivation <span class="text-teal-300 font-bold">F</span>unction<span class="opacity-40 mx-2">·</span><span class="text-teal-300 font-bold">2</span>
 </div>
 
-<div class="pt-16 text-xs opacity-35">andy.lin · 2026-09-18</div>
+<div class="pt-16 text-xs opacity-35">andy.lin · 2026-10-16</div>
 
 <!--
 封面上這五個字先掛著就好，不要解釋。
@@ -30,17 +30,17 @@ mdc: true
 layout: center
 ---
 
-# 今天怎麼走
+# Overview
 
 <div class="grid grid-cols-2 gap-x-10 gap-y-7 mt-8 text-left mx-auto" style="max-width: 760px">
 
 <div>
 <div class="text-xs uppercase tracking-widest opacity-40 mb-1">第一段</div>
 
-**兩次遇見**
+**兩次看到**
 
 <div class="text-sm opacity-60 mt-1 leading-relaxed">
-不是什麼大哉問。就是兩件小事剛好指到同一個東西。
+Bitwarden Security Whitepaper + Dotnet Library
 </div>
 </div>
 
@@ -67,7 +67,7 @@ PBKDF2 只做這一件事。它做得到什麼、做不到什麼。
 <div>
 <div class="text-xs uppercase tracking-widest opacity-40 mb-1">第四段</div>
 
-**回到那段 code**
+**回到 code**
 
 <div class="text-sm opacity-60 mt-1 leading-relaxed">
 它到底在做什麼，以及它為什麼被標成 obsolete。
@@ -218,10 +218,6 @@ clicks: 3
 # 那他算一次，要多久
 
 <Cost :step="$clicks" :reserve-conclusions="false" class="mt-8" />
-
-<div v-click="3" class="mx-auto mt-3 pl-3 text-sm opacity-70" style="max-width: 740px">
-salt 逼他對每一列重算一次 —— 但他算一次只要 <b class="text-red-300">45 皮秒</b>。db 有一百萬列，也才 45 微秒。
-</div>
 
 <!--
 第一列（單價）是這一頁的地基，一定要先唸出來：
