@@ -6,8 +6,6 @@
     大同 — EPSNet + ECSNet: 更換系統 logo — 已完成（由 gif 改為 svg，並訂下系統圖一律 svg 的政策）
     特力 — EPSCore + ETSCore: 人資串接停止執行 — 已暫時恢復，長期方案待客戶回覆
     船舶 — EDUCore: 弱掃問題處理 — 已完成（兩項都在 lb 處理，未改主程式）
-    本月多數項目的解法都落在主程式之外：前端 js、load balancer、OS 帳號設定、DB 主機環境；
-    唯一動到程式的大同 logo，也是先確認了不會影響其他廠商才改。
 
 一、統一超商 — ETSNet: 證據批次核可功能
 
@@ -93,10 +91,6 @@
 
     狀態：已暫時恢復，長期方案待客戶回覆
 
-    可以帶到的一點
-        同一個問題第二次發生，代表「到期 → 停擺 → 手動改密碼」會一直循環，
-        要靠客戶在兩個方案中做決定才能真正結束
-
 五、船舶 — EDUCore: 弱掃問題處理
 
     背景
@@ -110,7 +104,7 @@
 
     5-2 Host Header Injection (98623)
         掃描的攻擊方式
-            發請求時帶上偽造的 X-Forwarded-Host，response 中竟然就會出現攻擊字串
+            發請求時帶上偽造的 X-Forwarded-Host，response 中就會出現攻擊字串
         原因
             主程式設定為信任前一關 proxy 帶來的 header
                 options.ForwardedHeaders = ForwardedHeaders.All;
@@ -136,7 +130,7 @@
         狀態：已完成
 
     可以帶到的一點
-        主程式選擇信任 proxy header，責任就落在 proxy：誰被信任，誰就要負責把關
+        主程式信任 proxy 帶來的 forwarded header 時，proxy 必須覆寫這些 header，不能直接轉送 client 送來的值
 
 總結
     統一超商 ETSNet — 以一支前端 js 呼叫既有同意 API 完成批次核可，server 未改動

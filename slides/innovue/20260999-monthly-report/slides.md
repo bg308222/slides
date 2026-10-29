@@ -28,12 +28,6 @@ layout: default
 | 特力 — EPSCore + ETSCore | 人資串接停止執行 | <span class="text-amber-600">已暫時恢復，待客戶回覆</span> |
 | 船舶 — EDUCore | 弱掃問題處理 | <span class="text-teal-600">已完成</span> |
 
-<div class="mt-4 px-4 py-1 bg-gray-500/10 rounded">
-
-本月多數項目的解法都落在**主程式之外**：前端 js、load balancer、OS 帳號設定、DB 主機環境。唯一動到程式的大同 logo，也是先確認不會影響其他廠商才改。
-
-</div>
-
 ---
 layout: section
 color: cyan-light
@@ -190,10 +184,6 @@ color: cyan-light
 
 # 同步訂下的政策
 
-<div class="mt-2 text-sm opacity-70">
-這次的問題不會只發生一次，所以順帶定下往後的做法
-</div>
-
 <v-clicks>
 
 <div class="mt-6 p-4 border-l-4 border-teal-500 bg-teal-400/5">
@@ -283,7 +273,7 @@ color: cyan-light
 
 <div v-click class="mt-6 p-4 border-l-4 border-amber-500 bg-amber-400/5">
 
-**目前狀態：等待客戶回覆。** 不做決定的話，「到期 → 停擺 → 手動改密碼」會一直循環下去。
+**目前狀態：等待客戶回覆。**
 
 </div>
 
@@ -317,7 +307,7 @@ color: cyan-light
 
 <div v-click class="p-3 border-l-4 border-red-500 bg-red-400/5">
 
-**掃描的攻擊方式** — 請求帶上偽造的 `X-Forwarded-Host`，response 中竟然就出現攻擊字串
+**掃描的攻擊方式** — 請求帶上偽造的 `X-Forwarded-Host`，response 中就出現攻擊字串
 
 </div>
 
