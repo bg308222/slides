@@ -37,7 +37,7 @@ layout: center
 <div>
 <div class="text-xs uppercase tracking-widest opacity-40 mb-1">第一段</div>
 
-**兩次看到**
+**兩次看到 PBKDF**
 
 <div class="text-sm opacity-60 mt-1 leading-relaxed">
 Bitwarden Security Whitepaper + Dotnet Library
@@ -47,7 +47,7 @@ Bitwarden Security Whitepaper + Dotnet Library
 <div>
 <div class="text-xs uppercase tracking-widest opacity-40 mb-1">第二段</div>
 
-**密碼要怎麼存**
+**密碼被偷後的風險多大**
 
 <div class="text-sm opacity-60 mt-1 leading-relaxed">
 從明文一路走到加了 salt 的 hash。然後問：<b class="opacity-100">存進 db 的那個值被偷走之後，攻擊者猜一次要多少錢？</b>
@@ -87,7 +87,7 @@ PBKDF2 只做這一件事。它做得到什麼、做不到什麼。
 clicks: 2
 ---
 
-# 兩次遇見
+# 兩次看到 PBKDF
 
 <style>
 .deck-met .slidev-code { font-size: 10px !important; line-height: 1.7 !important; }
@@ -150,7 +150,7 @@ SYSLIB0060 · 'Rfc2898DeriveBytes' is obsolete
 clicks: 1
 ---
 
-# 密碼要怎麼存
+# 密碼被偷後的風險多大
 
 <div style="height: 38px" class="text-sm opacity-60">
 使用者註冊時給你一個密碼，你得把它存下來 —— 之後他來登入，你要判斷得出「這次打的對不對」。
