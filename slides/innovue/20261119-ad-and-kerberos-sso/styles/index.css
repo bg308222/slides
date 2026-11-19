@@ -1,0 +1,19 @@
+/* 隨機抽到的外觀：navy-coral 配色 + LXGW WenKai TC。只管外觀，不碰內容。 */
+:root {
+  --slidev-theme-primary: #fda4af;
+}
+
+.slidev-layout {
+  background: #0b1526;
+  color: #e2e8f0;
+}
+
+.slidev-layout h1 {
+  color: #fda4af;
+}
+
+.slidev-layout.section h1 {
+  color: #fda4af;
+  font-size: 2.6rem;
+  white-space: nowrap;
+}
