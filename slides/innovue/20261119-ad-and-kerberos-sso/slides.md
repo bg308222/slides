@@ -274,28 +274,31 @@ layout: section
 # 對上 Kerberos 的正式名詞
 
 ---
-clicks: 9
+clicks: 12
 transition: fade
 ---
 
-# 同一張圖
+# 用正式名稱再走一次
 
 <KeyWorld :frame="29 + $clicks" />
 
 <!--
 逐格講稿（畫面上每格只有一句短的動作描述，以下由講者口頭說）：
-[click 0] 圖不動，只把名字貼上去。
-[click 1] AD 那一整欄：KDC（Key Distribution Center）
-[click 2] 輸入密碼、拿金票的那一關：AS（Authentication Server）
-[click 3] 拿金票換專用票的那一關：TGS（Ticket-Granting Server）
-[click 4] 金票：TGT（Ticket-Granting Ticket）
-[click 5] 藍票、綠票：service ticket
-[click 6] app、app2：Application Server
-[click 7] 吊牌上的「給 app」：SPN（service principal name）
-[click 8] app 手上的那把對稱金鑰：服務帳號的 secret key（Linux / Java 服務會把它存成 keytab 檔）
-[click 9] 最後把兩個窗口和它發的票連起來：AS 發 TGT，TGS 拿 TGT 換出 service ticket。
+[click 0] 同一個流程，換上正式名稱從頭再走一次：AD 是 KDC，app、app2 是 Application Server。
+[click 1] 事前準備：app、app2 先向 KDC 註冊。
+[click 2] 各自拿到一把 secret key：和 KDC 共用的對稱金鑰（Linux / Java 服務會存成 keytab 檔）。
+[click 3] AS（Authentication Server）：作用是驗密碼。
+[click 4] 你登入，向 AS 證明身分（密碼本身不上網）。
+[click 5] AS 用只有 KDC 有的那把金鑰加密，發出 TGT（Ticket-Granting Ticket），交到你手上。
+[click 6] TGS（Ticket-Granting Server）：作用是換票。
+[click 7] 要進 app 時，帶著 TGT 去 TGS 換票。
+[click 8] TGS 解開 TGT，發出給 app 的 service ticket；吊牌上的「給誰」就是 SPN（service principal name）。
+[click 9] service ticket 交給 app，app 用自己的 secret key 解開。
+[click 10] 要進 app2 時，同一張 TGT 再換一張，不用再輸密碼。
+[click 11] 交給 app2，app2 用自己的 secret key 解開。
+[click 12] 最後把窗口和它發的票連起來：AS 發 TGT，TGS 拿 TGT 換出 service ticket。
 
-圖和上一章最後一格完全一樣，每個 click 只換一個名字。
+不是把名字一個一個貼上去，而是從空白的圖開始，帶著正式名稱把整個流程再演一次。
 
 瀏覽器用 DNS 解析後的正式主機名稱組 SPN（會跟隨 CNAME）。
 -->

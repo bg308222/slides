@@ -35,6 +35,8 @@ const KA = 240, KB = 296
 const AS_X = 267, ISSUE_Y = 228
 // 換票窗口發的票，出現在金票停靠位置的正下方，兩者平行移動不重疊
 const TGS_Y = 322
+// 第三章：TGT 在 user 欄停高一點，讓下方 service ticket 的 SPN 標籤不和 TGT 的名稱打架
+const TGT_Y = 200
 
 type Ticket = {
   x: number; y: number; show: boolean
@@ -54,6 +56,8 @@ function initial() {
     keyAt: { app: 'ad', app2: 'ad' } as Record<string, 'ad' | 'own'>,
     register: false,
     swap: false,
+    pw: true,
+    register2: false,
     login: false,
     callback: 'none' as 'none' | 'on' | 'cut',
     req: false,
@@ -157,19 +161,43 @@ const frames: any[] = [
   { step: '綠票交給 app2', req: false, tickets: { Gr2: { x: A2, y: S1 } }, status: { app2: '✓' }, tone: { app2: 'ok' },
     say: ['綠票交給 app2。一張金票換出多張專用票 → SSO；每張專用票仍只有自己的 app 解得開 → 隔離。'] },
 
-  // ── 第三章：圖不動，只貼名字（29–38）
-  { step: '貼上正式名稱', status: { app: '', app2: '' }, login: false,
-    say: ['圖不動，只把名字貼上去。'] },
-  { step: 'AD → KDC', names: { kdc: true }, say: ['AD 那一整欄：KDC（Key Distribution Center）'] },
-  { step: '驗密碼 → AS', names: { as: true }, say: ['輸入密碼、拿金票的那一關：AS（Authentication Server）'] },
-  { step: '換票 → TGS', names: { tgs: true }, say: ['拿金票換專用票的那一關：TGS（Ticket-Granting Server）'] },
-  { step: '金票 → TGT', names: { tgt: true }, say: ['金票：TGT（Ticket-Granting Ticket）'] },
-  { step: '藍票、綠票 → service ticket', names: { st: true }, say: ['藍票、綠票：service ticket'] },
-  { step: 'app → Application Server', names: { srv: true }, say: ['app、app2：Application Server'] },
-  { step: '吊牌 → SPN', names: { spn: true }, say: ['吊牌上的「給 app」：SPN（service principal name）'] },
-  { step: 'app 的金鑰 → secret key', names: { key: true }, say: ['app 手上的那把對稱金鑰：服務帳號的 secret key', '（Linux / Java 服務會把它存成 keytab 檔）'] },
+  // ── 第三章：用正式名稱從頭再走一次（29–41）
+  { step: '用正式名稱再走一次',
+    pw: false, swap: false, login: false, req: false, prompt: false, callback: 'none', register: false, register2: false,
+    keys: { ad0: null, ad1: null, ad2: null, app: null, app2: null }, keyAt: { app: 'ad', app2: 'ad' },
+    status: { app: '', app2: '' },
+    names: { kdc: true, srv: true, tgt: true, st: true, spn: true, as: false, tgs: false, key: false, issued: false },
+    tickets: {
+      T: { show: false }, T2: { show: false }, F: { show: false }, F2: { show: false }, B: { show: false }, Gr: { show: false },
+      G: { show: false, x: AS_X, y: ISSUE_Y },
+      B2: { show: false, x: SWAP, y: TGS_Y }, Gr2: { show: false, x: SWAP, y: TGS_Y },
+    },
+    say: ['同一個流程，換上正式名稱從頭再走一次：AD 是 KDC，app、app2 是 Application Server。'] },
+  { step: 'app、app2 向 KDC 註冊', register: true, register2: true,
+    say: ['事前準備：app、app2 先向 KDC 註冊。'] },
+  { step: '各自拿到 secret key', register: false, register2: false,
+    keys: { ad0: 'blue', ad1: 'green', app: 'blue', app2: 'green' }, keyAt: { app: 'own', app2: 'own' }, names: { key: true },
+    say: ['各自拿到一把 secret key：和 KDC 共用的對稱金鑰（Linux / Java 服務會存成 keytab 檔）。'] },
+  { step: 'AS 出現', pw: true, names: { as: true },
+    say: ['AS（Authentication Server）：作用是驗密碼。'] },
+  { step: '你登入', login: true,
+    say: ['你登入，向 AS 證明身分（密碼本身不上網）。'] },
+  { step: 'AS 發出 TGT', keys: { ad2: 'gold' }, tickets: { G: { show: true, x: U, y: TGT_Y } },
+    say: ['AS 用只有 KDC 有的那把金鑰加密，發出 TGT（Ticket-Granting Ticket），交到你手上。'] },
+  { step: 'TGS 出現', swap: true, names: { tgs: true },
+    say: ['TGS（Ticket-Granting Server）：作用是換票。'] },
+  { step: '帶著 TGT 去換票', req: true, reqText: 'TGT ＋ 我要 app 的票', tickets: { G: { x: SWAP, y: S1 } },
+    say: ['要進 app 時，帶著 TGT 去 TGS 換票。'] },
+  { step: 'TGS 發出 service ticket', req: false, tickets: { G: { x: U, y: TGT_Y }, B2: { show: true, x: U, y: S2 } },
+    say: ['TGS 解開 TGT，發出給 app 的 service ticket；吊牌上的「給誰」就是 SPN（service principal name）。'] },
+  { step: 'service ticket 交給 app', tickets: { B2: { x: A1, y: S1 } },
+    say: ['service ticket 交給 app，app 用自己的 secret key 解開。'] },
+  { step: '同一張 TGT，再換 app2 的票', req: true, reqText: 'TGT ＋ 我要 app2 的票', tickets: { Gr2: { show: true, x: U, y: S2 } },
+    say: ['要進 app2 時，同一張 TGT 再換一張，不用再輸密碼。'] },
+  { step: 'service ticket 交給 app2', req: false, tickets: { Gr2: { x: A2, y: S1 } },
+    say: ['交給 app2，app2 用自己的 secret key 解開。'] },
   { step: '誰發了哪張票', names: { issued: true },
-    say: ['最後把兩個窗口和它發的票連起來：AS 發 TGT，TGS 拿 TGT 換出 service ticket。'] },
+    say: ['最後把窗口和它發的票連起來：AS 發 TGT，TGS 拿 TGT 換出 service ticket。'] },
 ]
 
 function apply(s: State, p: any) {
@@ -274,7 +302,7 @@ const lanes = computed(() => [
       <text :x="SWAP" y="113" text-anchor="middle" :fill="C.gold" style="font-size: 10px"
             :style="{ opacity: st.keys.ad2 ? .85 : 0, transition: 'opacity 400ms' }">只有 AD 有</text>
       <!-- 驗密碼（AS）：功能描述置中；貼上名稱時，描述往下讓出位置，名稱出現在上方 -->
-      <g>
+      <g :style="{ opacity: st.pw ? 1 : 0, transition: 'opacity 450ms' }">
         <rect x="210" y="128" width="115" height="40" rx="7" fill="#ffffff0a" stroke="#ffffff40" />
         <text x="267" y="153" text-anchor="middle" fill="#f1f5f9" style="font-size: 13px"
               :style="{ transform: st.names.as ? 'translateY(10px)' : 'none', opacity: st.names.as ? .8 : 1,
@@ -296,13 +324,13 @@ const lanes = computed(() => [
         <text :x="SWAP" y="146" text-anchor="middle" :fill="C.accent" style="font-size: 15px; font-weight: 700"
               :style="{ opacity: st.names.tgs ? 1 : 0, transition: 'opacity 300ms 200ms' }">TGS</text>
       </g>
-      <text x="212" y="186" :fill="C.accent" style="font-size: 11px"
+      <text x="212" y="352" :fill="C.accent" style="font-size: 11px"
             :style="{ opacity: st.names.as ? 1 : 0, transition: 'opacity 400ms' }">AS = Authentication Server</text>
-      <text x="212" y="201" :fill="C.accent" style="font-size: 11px"
+      <text x="212" y="367" :fill="C.accent" style="font-size: 11px"
             :style="{ opacity: st.names.tgs ? 1 : 0, transition: 'opacity 400ms' }">TGS = Ticket-Granting Server</text>
 
       <!-- 第三章最後：誰發了哪張票（AS → TGT；TGS → service ticket） -->
-      <Arrow d="M210 160 C 175 160, 172 245, 145 245" tip="152,240 143,245 152,250"
+      <Arrow d="M210 152 C 182 152, 176 200, 145 200" tip="152,195 143,200 152,205"
              :on="!!st.names.issued" :color="C.accent" :opacity="0.75" />
       <Arrow d="M450 160 C 492 160, 492 256, 535 256" tip="528,251 537,256 528,261"
              :on="!!st.names.issued" :color="C.accent" :opacity="0.75" :delay="300" />
@@ -313,6 +341,10 @@ const lanes = computed(() => [
       <Arrow d="M560 110 H334" tip="340,105 332,110 340,115" :on="st.register" :color="C.line" />
       <text x="446" y="102" text-anchor="middle" fill="#cbd5e1" style="font-size: 11px"
             :style="{ opacity: st.register ? .85 : 0, transition: 'opacity 300ms' }">註冊 app</text>
+
+      <Arrow d="M760 122 H334" tip="340,117 332,122 340,127" :on="st.register2" :color="C.line" :delay="200" />
+      <text x="640" y="116" text-anchor="middle" fill="#cbd5e1" style="font-size: 11px"
+            :style="{ opacity: st.register2 ? .85 : 0, transition: 'opacity 300ms' }">註冊 app2</text>
 
       <!-- 登入：user → 驗密碼 -->
       <Arrow d="M150 148 H206" tip="200,143 208,148 200,153" :on="st.login" :color="C.line" />
