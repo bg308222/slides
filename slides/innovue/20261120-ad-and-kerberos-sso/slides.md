@@ -17,7 +17,7 @@ fonts:
 
 登入 Windows 之後，為什麼能直接進系統
 
-<div class="pt-16 text-xs opacity-35">andy.lin · 2026-11-19</div>
+<div class="pt-16 text-xs opacity-35">andy.lin · 2026-11-20</div>
 
 ---
 layout: center
