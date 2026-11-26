@@ -317,9 +317,15 @@ ToolSearch("select:mcp__playwright__browser_navigate,mcp__playwright__browser_ta
 
 若回報瀏覽器沒安裝，先跑 `npx -y @playwright/mcp install-browser chrome-for-testing`。
 
+**驗證用的 dev server 一律自己另開一個，絕對不要動使用者自己的 dev。**
+使用者常常同時開著 `just dev`（同樣是 `slidev.mjs`）在看畫面；agent 要用就在另一個 port 自己跑一個，
+記下它的 PID，收尾時只關這一個（見 6.4）。不要為了「重新載入」去關任何 server——Slidev 會熱更新，存檔就生效。
+
 ```bash
-nohup bun node_modules/@slidev/cli/bin/slidev.mjs <path>/slides.md --port 3095 > /tmp/deck.log 2>&1 & disown
-for i in $(seq 1 60); do c=$(curl -s -m 3 -o /dev/null -w '%{http_code}' http://localhost:3095/); [ "$c" = "200" ] && { echo ready; break; }; sleep 1; done
+PORT=3095   # 先確認沒被占用：curl -s -o /dev/null -w '%{http_code}' http://localhost:$PORT/ 應該回 000；被占用就換一個
+nohup bun node_modules/@slidev/cli/bin/slidev.mjs <path>/slides.md --port $PORT > <scratchpad>/deck.log 2>&1 &
+echo $! > <scratchpad>/deck.pid; disown
+for i in $(seq 1 60); do c=$(curl -s -m 3 -o /dev/null -w '%{http_code}' http://localhost:$PORT/); [ "$c" = "200" ] && { echo ready; break; }; sleep 1; done
 ```
 
 **關鍵操作細節**（踩過才知道的）：
@@ -446,10 +452,14 @@ Slidev 自己的導覽列也可能有同樣格式的文字，會變成假訊號�
 #### 6.4 收尾
 
 ```bash
-pgrep -f 'slidev.mjs' | grep -v $$ | xargs -r kill
+kill "$(cat <scratchpad>/deck.pid)"   # 只關 6.2 自己啟動的那一個
 rm -rf .playwright-mcp   # 截圖產生的暫存目錄，不要留進 repo
 git status --short        # 確認沒有多餘檔案
 ```
+
+**不要用 `pkill -f slidev`、`pgrep -f 'slidev.mjs' | xargs kill` 這類依名稱比對的指令。**
+它們會連使用者自己開的 `just dev` 一起關掉（實際發生過），甚至會砍到執行這行指令的 shell 本身。
+PID 檔不見時就不要關，告訴使用者哪個 port 還開著即可。
 
 ### 7. 回報
 

@@ -1,0 +1,22 @@
+/* 隨機抽到的外觀：deep-teal-rose 配色 + Noto Sans TC。只管外觀，不碰內容。 */
+:root {
+  --slidev-theme-primary: #f9a8d4;
+}
+
+.slidev-layout {
+  background: #0b1f24;
+  color: #e2e8f0;
+}
+
+.slidev-layout h1 {
+  color: #f9a8d4;
+}
+
+.slidev-layout.section h1 {
+  color: #f9a8d4;
+  font-size: 2.4rem;
+}
+
+.slidev-layout a {
+  color: #f9a8d4;
+}
